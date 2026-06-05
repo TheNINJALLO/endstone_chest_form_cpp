@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Configurable Endstone API Version
-set(ENDSTONE_API_VERSION "0.10.0" CACHE STRING "Target Endstone API version")
+set(ENDSTONE_API_VERSION "0.11.0" CACHE STRING "Target Endstone API version")
 
 # Shared compilation configurations
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -53,8 +53,8 @@ else()
     message(STATUS "Protocol library found locally!")
 endif()
 
-# Build the Shared Library/Plugin
-add_library(endstone_chest_form_cpp SHARED ${SRC_FILES})
+# Build the Shared Library/Plugin using the Endstone helper function
+endstone_add_plugin(endstone_chest_form_cpp ${SRC_FILES})
 
 # Compiler Definitions & Header Inclusion
 target_include_directories(endstone_chest_form_cpp PUBLIC ${INC_DIRS})
@@ -70,7 +70,6 @@ endif()
 # Link Dependencies
 target_link_libraries(endstone_chest_form_cpp 
     PRIVATE 
-        endstone::headers
         Protocol::Protocol
 )
 
