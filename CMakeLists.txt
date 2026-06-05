@@ -6,11 +6,6 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Disable strict constexpr errors under Clang for external dependencies (like Protocol)
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
-    add_compile_options(-Wno-invalid-constexpr)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-constexpr")
-endif()
 
 # Configurable Endstone API Version
 set(ENDSTONE_API_VERSION "0.11.0" CACHE STRING "Target Endstone API version")
@@ -38,6 +33,12 @@ FetchContent_Declare(
     GIT_TAG "v${ENDSTONE_API_VERSION}"
 )
 FetchContent_MakeAvailable(endstone)
+
+# Disable strict constexpr errors under Clang for external dependencies (like Protocol)
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
+    add_compile_options(-Wno-invalid-constexpr)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-constexpr" CACHE STRING "" FORCE)
+endif()
 
 # Find or Fetch SculkCatalystMC/Protocol
 find_package(Protocol CONFIG QUIET)
