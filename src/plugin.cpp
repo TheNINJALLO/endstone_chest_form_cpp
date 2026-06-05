@@ -1,7 +1,6 @@
 #include "chest_form_api/chest_form.h"
 #include "chest_form_api/chest_form_manager.h"
 #include <endstone/plugin/plugin.h>
-#include <endstone/event/listener.h>
 #include <endstone/event/server/packet_send_event.h>
 #include <endstone/event/server/packet_receive_event.h>
 #include <endstone/event/player/player_quit_event.h>
@@ -14,7 +13,7 @@
 #include <vector>
 #include <string>
 
-class ChestFormListener : public endstone::Listener {
+class ChestFormListener {
 public:
     void onPacketSend(endstone::PacketSendEvent& event) {
         if (event.getPlayer()) {
