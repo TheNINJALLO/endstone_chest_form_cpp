@@ -1,0 +1,37 @@
+name: C++ Linux Compilation Build
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install Compilers and Build Tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build clang-18 libc++-18-dev libc++abi-18-dev
+
+    - name: Configure CMake
+      run: |
+        CC=clang-18 CXX=clang++-18 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+    - name: Compile Library
+      run: |
+        cmake --build build
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: libendstone_chest_form_cpp
+        path: build/libendstone_chest_form_cpp.so
