@@ -1,0 +1,21 @@
+# Build output
+build/
+bin/
+lib/
+out/
+
+# Cloned dependencies (CMake fetches them dynamically)
+external/
+
+# IDE files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.db
+*.ipch
+
+# OS temporary files
+.DS_Store
+Thumbs.db
