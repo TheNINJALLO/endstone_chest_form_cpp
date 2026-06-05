@@ -111,14 +111,14 @@ void ChestFormManager::init(endstone::Plugin& plugin) {
     
     auto chest_data = server.createBlockData("minecraft:chest");
     if (chest_data) {
-        chest_runtime_id_ = chest_data.value()->getRuntimeId();
+        chest_runtime_id_ = chest_data->getRuntimeId();
     } else {
         plugin_->getLogger().error("Failed to query runtime ID for minecraft:chest");
     }
 
     auto air_data = server.createBlockData("minecraft:air");
     if (air_data) {
-        air_runtime_id_ = air_data.value()->getRuntimeId();
+        air_runtime_id_ = air_data->getRuntimeId();
     } else {
         plugin_->getLogger().error("Failed to query runtime ID for minecraft:air");
     }
@@ -141,7 +141,7 @@ void ChestFormManager::shutdown() {
 }
 
 void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form) {
-    auto uuid = player.getUniqueId().toString();
+    auto uuid = player.getUniqueId().str();
 
     // Close any already open fake chest forms
     closeForm(player, false);
@@ -163,7 +163,7 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
 
     // Store original blocks to restore them later
     auto& dimension = player.getDimension();
-    auto* block1 = dimension.getBlockAt(session.chest_x, session.chest_y, session.chest_z);
+    auto block1 = dimension.getBlockAt(session.chest_x, session.chest_y, session.chest_z);
     session.original_block_runtime_id_1 = (block1 && block1->getData()) ? block1->getData()->getRuntimeId() : air_runtime_id_;
 
     bool is_double = (session.size == ChestSize::Double);
@@ -171,7 +171,7 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
     int pair_z = session.chest_z;
 
     if (is_double) {
-        auto* block2 = dimension.getBlockAt(pair_x, session.chest_y, pair_z);
+        auto block2 = dimension.getBlockAt(pair_x, session.chest_y, pair_z);
         session.original_block_runtime_id_2 = (block2 && block2->getData()) ? block2->getData()->getRuntimeId() : air_runtime_id_;
     } else {
         session.original_block_runtime_id_2 = air_runtime_id_;
@@ -265,7 +265,7 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
 }
 
 void ChestFormManager::closeForm(endstone::Player& player, bool client_initiated) {
-    auto uuid = player.getUniqueId().toString();
+    auto uuid = player.getUniqueId().str();
     auto it = active_sessions_.find(uuid);
     if (it == active_sessions_.end()) {
         return;
@@ -318,7 +318,7 @@ void ChestFormManager::handlePacketSend(endstone::Player& player, int packet_id,
 }
 
 bool ChestFormManager::handlePacketReceive(endstone::Player& player, int packet_id, std::string_view payload) {
-    auto uuid = player.getUniqueId().toString();
+    auto uuid = player.getUniqueId().str();
     auto session_it = active_sessions_.find(uuid);
     if (session_it == active_sessions_.end()) {
         return true;
