@@ -6,6 +6,11 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Disable strict constexpr errors under Clang for external dependencies (like Protocol)
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-Wno-invalid-constexpr)
+endif()
+
 # Configurable Endstone API Version
 set(ENDSTONE_API_VERSION "0.11.0" CACHE STRING "Target Endstone API version")
 
