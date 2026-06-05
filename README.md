@@ -45,28 +45,157 @@ cmake --build build
 
 The compiled Endstone plugin shared object (`libendstone_chest_form_cpp.so`) will be generated inside the `build` directory. Move it to your Endstone server's `plugins/` directory to load it.
 
-## Integration options for Other C++ Plugins
+## Integration Options for Other C++ Plugins
 
-### Option 1: Using FetchContent (Fallback)
+### Option 1: Using FetchContent (CMake-based)
 You can declare it in your plugin's `CMakeLists.txt` using CMake's standard fetch API:
 ```cmake
 include(FetchContent)
 FetchContent_Declare(
-    endstone_chest_form_cpp
-    GIT_REPOSITORY https://github.com/GlacieTeam/ChestFormAPI.git # Update to actual repository
-    GIT_TAG main
+    chest_form_cpp
+    GIT_REPOSITORY https://github.com/TheNINJALLO/endstone_chest_form_cpp.git
+    GIT_TAG master
 )
-FetchContent_MakeAvailable(endstone_chest_form_cpp)
+FetchContent_MakeAvailable(chest_form_cpp)
+
+# Link against the target in your plugin
+target_link_libraries(your_plugin PRIVATE chest_form_cpp)
 ```
 
-### Option 2: Using find_package (Preferred)
-If installed on the server, you can link against it directly:
+### Option 2: Using find_package (Local Library)
+If installed on the target machine, you can find and link against the library target directly:
 ```cmake
-find_package(Protocol CONFIG REQUIRED)
-target_link_libraries(your_plugin PRIVATE Protocol::Protocol)
+find_package(chest_form_cpp CONFIG REQUIRED)
+target_link_libraries(your_plugin PRIVATE chest_form_cpp::chest_form_cpp)
 ```
 
-## Example API Usage
+---
+
+## Python Integration (Wheel Distribution)
+
+Endstone plugins can be written in C++ or Python. To make the ChestFormAPI accessible to Python plugins, you can compile it as a Python extension module using `pybind11`.
+
+### 1. Declaring Pybind11 Bindings (C++)
+
+Add the following binding code to your C++ codebase (e.g., in `src/bindings.cpp`):
+
+```cpp
+#include <pybind11/pybind11.h>
+#include <pybind11/functional.h>
+#include <pybind11/stl.h>
+#include <chest_form_api/chest_form.h>
+#include <chest_form_api/form_item.h>
+#include <chest_form_api/chest_form_manager.h>
+
+namespace py = pybind11;
+
+PYBIND11_MODULE(endstone_chest_form, m) {
+    m.doc() = "Python bindings for Endstone ChestFormAPI";
+
+    py::enum_<ChestSize>(m, "ChestSize")
+        .value("SINGLE", ChestSize::Single)
+        .value("DOUBLE", ChestSize::Double)
+        .export_values();
+
+    py::class_<FormItem>(m, "FormItem")
+        .def(py::init<>())
+        .def_readwrite("type_id", &FormItem::type_id)
+        .def_readwrite("amount", &FormItem::amount)
+        .def_readwrite("aux", &FormItem::aux)
+        .def_readwrite("display_name", &FormItem::display_name)
+        .def_readwrite("lore", &FormItem::lore)
+        .def_readwrite("enchants", &FormItem::enchants)
+        .def_readwrite("custom_nbt_snbt", &FormItem::custom_nbt_snbt);
+
+    py::class_<ChestForm>(m, "ChestForm")
+        .def(py::init<endstone::Plugin&, std::string, ChestSize>(),
+             py::arg("plugin"), py::arg("title"), py::arg("size") = ChestSize::Double)
+        .def("set_slot", [](ChestForm& self, int slot, FormItem item, std::function<void(endstone::Player&, int)> callback) {
+            self.setSlot(slot, item, callback);
+            return &self;
+        }, py::arg("slot"), py::arg("item"), py::arg("callback") = nullptr, py::return_value_policy::reference)
+        .def("fill_slots", &ChestForm::fillSlots, py::return_value_policy::reference)
+        .def("clear_slot", &ChestForm::clearSlot, py::return_value_policy::reference)
+        .def("send_to", &ChestForm::sendTo)
+        .def("close", &ChestForm::close);
+}
+```
+
+### 2. Packaging as a Python Wheel (`.whl`)
+
+Using `scikit-build-core` or `setuptools`, you can bundle the compiled binary as a `.whl` package. Add a `pyproject.toml` to compile the CMake project as a Python wheel:
+
+```toml
+[build-system]
+requires = ["scikit-build-core>=0.5.0", "pybind11>=2.11.0"]
+build-backend = "scikit-build-core.build"
+
+[project]
+name = "endstone_chest_form"
+version = "1.0.0"
+description = "Python wrapper for Endstone C++ ChestFormAPI"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "endstone>=0.11.0"
+]
+```
+
+Build the wheel using:
+```bash
+pip install build
+python -m build --wheel
+```
+
+This generates a `.whl` package in the `dist/` directory, which can be installed in any Endstone server environment using:
+```bash
+pip install dist/endstone_chest_form-1.0.0-*.whl
+```
+
+### 3. Example Python API Usage
+
+Once the wheel is installed, you can import and use `endstone_chest_form` in any Python Endstone plugin:
+
+```python
+from endstone.plugin import Plugin
+from endstone.player import Player
+from endstone_chest_form import ChestForm, FormItem, ChestSize
+
+class MyPythonPlugin(Plugin):
+    def on_enable(self) -> None:
+        self.register_events(self)
+        self.logger.info("Python ChestForm example loaded!")
+
+    def open_selector(self, player: Player):
+        # 1. Create the Chest Form
+        form = ChestForm(self, "§bPython Item Selector", ChestSize.DOUBLE)
+
+        # 2. Add an item with custom properties and a callback
+        diamond = FormItem()
+        diamond.type_id = "minecraft:diamond"
+        diamond.display_name = "§bFree Diamond"
+        diamond.lore = ["§7Click to claim your diamond!"]
+        
+        # Callbacks are fully supported using Python functions or lambdas
+        def on_click(p: Player, slot: int):
+            p.send_message("§a[ChestForm] You clicked the diamond!")
+            p.inventory.add_item(p.server.create_item_stack("minecraft:diamond", 1))
+
+        form.set_slot(13, diamond, on_click)
+
+        # 3. Add a close button
+        barrier = FormItem()
+        barrier.type_id = "minecraft:barrier"
+        barrier.display_name = "§cClose Menu"
+        form.set_slot(31, barrier, lambda p, slot: form.close(p))
+
+        # 4. Open UI for player
+        form.send_to(player)
+```
+
+---
+
+## Example C++ API Usage
 
 Below is a simple example showing how to create and open a double chest form using the C++ API:
 
@@ -101,6 +230,8 @@ void sendCustomForm(endstone::Plugin& plugin, endstone::Player& player) {
     form.sendTo(player);
 }
 ```
+
+---
 
 ## Test Commands
 
