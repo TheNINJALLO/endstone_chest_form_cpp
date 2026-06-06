@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-linux:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout Repository
@@ -20,7 +20,11 @@ jobs:
     - name: Install Compilers and Build Tools
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build clang-18 libc++-18-dev libc++abi-18-dev
+        sudo apt-get install -y cmake ninja-build wget git
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh 18
+        sudo apt-get install -y libc++-18-dev libc++abi-18-dev
 
     - name: Configure CMake
       run: |
