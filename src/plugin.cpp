@@ -160,8 +160,12 @@ private:
         reopen.lore = {"§7Click to reopen the form!"};
         form.setSlot(22, reopen, [this](endstone::Player& p, int slot) {
             p.sendMessage("§e[ChestForm] Reopening form in 1 tick...");
-            getServer().getScheduler().runTaskLater(*this, [this, p_ptr = &p]() {
-                setupAndSendTestForm(*p_ptr);
+            std::string admin_uuid = p.getUniqueId().str();
+            getServer().getScheduler().runTaskLater(*this, [this, admin_uuid]() {
+                auto* admin_p = getServer().getPlayer(admin_uuid);
+                if (admin_p) {
+                    setupAndSendTestForm(*admin_p);
+                }
             }, 1);
         });
 
@@ -189,9 +193,14 @@ private:
         auto addArmorSlot = [this, form, target_ptr](int virtual_slot, std::optional<endstone::ItemStack> item, int target_slot, std::string placeholder_name) {
             if (item && item->getType().getId() != "minecraft:air") {
                 FormItem f_item = createFormItem(*item);
-                form->setSlot(virtual_slot, f_item, [this, target_ptr, target_slot](endstone::Player& p, int slot) {
-                    getServer().getScheduler().runTaskLater(*this, [this, p_ptr = &p, target_ptr, target_slot]() {
-                        openManagementMenu(*p_ptr, *target_ptr, target_slot, false);
+                form->setSlot(virtual_slot, f_item, [this, target_uuid = target_ptr->getUniqueId().str(), target_slot](endstone::Player& p, int slot) {
+                    std::string admin_uuid = p.getUniqueId().str();
+                    getServer().getScheduler().runTaskLater(*this, [this, admin_uuid, target_uuid, target_slot]() {
+                        auto* admin_p = getServer().getPlayer(admin_uuid);
+                        auto* target_p = getServer().getPlayer(target_uuid);
+                        if (admin_p && target_p) {
+                            openManagementMenu(*admin_p, *target_p, target_slot, false);
+                        }
                     }, 1);
                 });
             } else {
@@ -208,9 +217,14 @@ private:
             auto item = target_inv.getItem(i);
             if (item && item->getType().getId() != "minecraft:air") {
                 FormItem f_item = createFormItem(*item);
-                form->setSlot(i, f_item, [this, target_ptr, i](endstone::Player& p, int slot) {
-                    getServer().getScheduler().runTaskLater(*this, [this, p_ptr = &p, target_ptr, i]() {
-                        openManagementMenu(*p_ptr, *target_ptr, i, false);
+                form->setSlot(i, f_item, [this, target_uuid = target_ptr->getUniqueId().str(), i](endstone::Player& p, int slot) {
+                    std::string admin_uuid = p.getUniqueId().str();
+                    getServer().getScheduler().runTaskLater(*this, [this, admin_uuid, target_uuid, i]() {
+                        auto* admin_p = getServer().getPlayer(admin_uuid);
+                        auto* target_p = getServer().getPlayer(target_uuid);
+                        if (admin_p && target_p) {
+                            openManagementMenu(*admin_p, *target_p, i, false);
+                        }
                     }, 1);
                 });
             } else {
@@ -223,9 +237,14 @@ private:
             int virtual_slot = 45 + i;
             if (item && item->getType().getId() != "minecraft:air") {
                 FormItem f_item = createFormItem(*item);
-                form->setSlot(virtual_slot, f_item, [this, target_ptr, i](endstone::Player& p, int slot) {
-                    getServer().getScheduler().runTaskLater(*this, [this, p_ptr = &p, target_ptr, i]() {
-                        openManagementMenu(*p_ptr, *target_ptr, i, false);
+                form->setSlot(virtual_slot, f_item, [this, target_uuid = target_ptr->getUniqueId().str(), i](endstone::Player& p, int slot) {
+                    std::string admin_uuid = p.getUniqueId().str();
+                    getServer().getScheduler().runTaskLater(*this, [this, admin_uuid, target_uuid, i]() {
+                        auto* admin_p = getServer().getPlayer(admin_uuid);
+                        auto* target_p = getServer().getPlayer(target_uuid);
+                        if (admin_p && target_p) {
+                            openManagementMenu(*admin_p, *target_p, i, false);
+                        }
                     }, 1);
                 });
             } else {
@@ -244,9 +263,14 @@ private:
         for (int i = 0; i < 27; ++i) {
             auto& item = ender_chest[i];
             if (!item.type_id.empty() && item.type_id != "minecraft:air") {
-                form->setSlot(i, item, [this, target_ptr, i](endstone::Player& p, int slot) {
-                    getServer().getScheduler().runTaskLater(*this, [this, p_ptr = &p, target_ptr, i]() {
-                        openManagementMenu(*p_ptr, *target_ptr, i, true);
+                form->setSlot(i, item, [this, target_uuid = target_ptr->getUniqueId().str(), i](endstone::Player& p, int slot) {
+                    std::string admin_uuid = p.getUniqueId().str();
+                    getServer().getScheduler().runTaskLater(*this, [this, admin_uuid, target_uuid, i]() {
+                        auto* admin_p = getServer().getPlayer(admin_uuid);
+                        auto* target_p = getServer().getPlayer(target_uuid);
+                        if (admin_p && target_p) {
+                            openManagementMenu(*admin_p, *target_p, i, true);
+                        }
                     }, 1);
                 });
             } else {
@@ -298,12 +322,17 @@ private:
         clone_btn.type_id = "minecraft:emerald";
         clone_btn.display_name = "§aClone Item";
         clone_btn.lore = {"§7Click to copy this item stack", "§7to your own inventory."};
-        form->setSlot(11, clone_btn, [this, target_ptr, preview_item, target_slot, is_ender](endstone::Player& p, int slot) {
+        form->setSlot(11, clone_btn, [this, target_uuid = target_ptr->getUniqueId().str(), preview_item, target_slot, is_ender](endstone::Player& p, int slot) {
             p.getInventory().addItem(endstone::ItemStack(preview_item.type_id, preview_item.amount, preview_item.aux));
             p.sendMessage("§a[ChestForm] Cloned item to your inventory.");
-            getServer().getScheduler().runTaskLater(*this, [this, p_ptr = &p, target_ptr, is_ender]() {
-                if (is_ender) openEnderSeeForm(*p_ptr, *target_ptr);
-                else openInventorySeeForm(*p_ptr, *target_ptr);
+            std::string admin_uuid = p.getUniqueId().str();
+            getServer().getScheduler().runTaskLater(*this, [this, admin_uuid, target_uuid, is_ender]() {
+                auto* admin_p = getServer().getPlayer(admin_uuid);
+                auto* target_p = getServer().getPlayer(target_uuid);
+                if (admin_p && target_p) {
+                    if (is_ender) openEnderSeeForm(*admin_p, *target_p);
+                    else openInventorySeeForm(*admin_p, *target_p);
+                }
             }, 1);
         });
 
@@ -311,24 +340,32 @@ private:
         delete_btn.type_id = "minecraft:redstone_block";
         delete_btn.display_name = "§cDelete Item";
         delete_btn.lore = {"§7Click to clear this item", "§7from the player's inventory."};
-        form->setSlot(13, delete_btn, [this, target_ptr, target_slot, is_ender](endstone::Player& p, int slot) {
-            if (is_ender) {
-                auto& chest = getOrCreateVirtualEnderChest(target_ptr->getUniqueId().str());
-                if (target_slot >= 0 && target_slot < 27) {
-                    chest[target_slot] = FormItem{};
+        form->setSlot(13, delete_btn, [this, target_uuid = target_ptr->getUniqueId().str(), target_slot, is_ender](endstone::Player& p, int slot) {
+            auto* target_p = getServer().getPlayer(target_uuid);
+            if (target_p) {
+                if (is_ender) {
+                    auto& chest = getOrCreateVirtualEnderChest(target_uuid);
+                    if (target_slot >= 0 && target_slot < 27) {
+                        chest[target_slot] = FormItem{};
+                    }
+                } else {
+                    auto& target_inv = target_p->getInventory();
+                    if (target_slot == 36) target_inv.setHelmet(std::nullopt);
+                    else if (target_slot == 37) target_inv.setChestplate(std::nullopt);
+                    else if (target_slot == 38) target_inv.setLeggings(std::nullopt);
+                    else if (target_slot == 39) target_inv.setBoots(std::nullopt);
+                    else target_inv.setItem(target_slot, std::nullopt);
                 }
-            } else {
-                auto& target_inv = target_ptr->getInventory();
-                if (target_slot == 36) target_inv.setHelmet(std::nullopt);
-                else if (target_slot == 37) target_inv.setChestplate(std::nullopt);
-                else if (target_slot == 38) target_inv.setLeggings(std::nullopt);
-                else if (target_slot == 39) target_inv.setBoots(std::nullopt);
-                else target_inv.setItem(target_slot, std::nullopt);
+                p.sendMessage("§a[ChestForm] Deleted item from slot.");
             }
-            p.sendMessage("§a[ChestForm] Deleted item from slot.");
-            getServer().getScheduler().runTaskLater(*this, [this, p_ptr = &p, target_ptr, is_ender]() {
-                if (is_ender) openEnderSeeForm(*p_ptr, *target_ptr);
-                else openInventorySeeForm(*p_ptr, *target_ptr);
+            std::string admin_uuid = p.getUniqueId().str();
+            getServer().getScheduler().runTaskLater(*this, [this, admin_uuid, target_uuid, is_ender]() {
+                auto* admin_p = getServer().getPlayer(admin_uuid);
+                auto* target_p_new = getServer().getPlayer(target_uuid);
+                if (admin_p && target_p_new) {
+                    if (is_ender) openEnderSeeForm(*admin_p, *target_p_new);
+                    else openInventorySeeForm(*admin_p, *target_p_new);
+                }
             }, 1);
         });
 
@@ -336,10 +373,15 @@ private:
         back_btn.type_id = "minecraft:arrow";
         back_btn.display_name = "§eGo Back";
         back_btn.lore = {"§7Return to the inventory view."};
-        form->setSlot(15, back_btn, [this, target_ptr, is_ender](endstone::Player& p, int slot) {
-            getServer().getScheduler().runTaskLater(*this, [this, p_ptr = &p, target_ptr, is_ender]() {
-                if (is_ender) openEnderSeeForm(*p_ptr, *target_ptr);
-                else openInventorySeeForm(*p_ptr, *target_ptr);
+        form->setSlot(15, back_btn, [this, target_uuid = target_ptr->getUniqueId().str(), is_ender](endstone::Player& p, int slot) {
+            std::string admin_uuid = p.getUniqueId().str();
+            getServer().getScheduler().runTaskLater(*this, [this, admin_uuid, target_uuid, is_ender]() {
+                auto* admin_p = getServer().getPlayer(admin_uuid);
+                auto* target_p = getServer().getPlayer(target_uuid);
+                if (admin_p && target_p) {
+                    if (is_ender) openEnderSeeForm(*admin_p, *target_p);
+                    else openInventorySeeForm(*admin_p, *target_p);
+                }
             }, 1);
         });
 
@@ -371,7 +413,7 @@ private:
     std::unordered_map<std::string, std::vector<FormItem>> virtual_ender_chests_;
 };
 
-ENDSTONE_PLUGIN("chestform_api", "1.0.17", ChestFormPlugin) {
+ENDSTONE_PLUGIN("chestform_api", "1.0.18", ChestFormPlugin) {
     prefix = "ChestFormPlugin";
     description = "Native C++ ChestFormAPI for fake chest inventory forms";
     website = "https://github.com/GlacieTeam/ChestFormAPI";

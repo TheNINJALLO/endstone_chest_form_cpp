@@ -16,6 +16,16 @@ Before starting, ensure that:
 
 ---
 
+## 📦 Release Artifacts Guide
+
+Understanding the role of each release artifact is key for proper deployment:
+
+*   **`endstone_chestform_api.dll` (Windows C++ Plugin)**: Exposes the core C-ABI bindings and intercepts packet events on Windows servers. Copy it directly to `plugins/`.
+*   **`endstone_chestform_api.so` (Linux C++ Plugin)**: Exposes the core C-ABI bindings and intercepts packet events on Linux servers. Copy it directly to `plugins/`.
+*   **`endstone_chestform_api-X.Y.Z-py3-none-any.whl` (Python Wheel)**: Standard Python wheel package. Contains the ctypes client wrapper and developer stubs allowing other Python-based plugins to access the C++ backend functions. Install via `pip`.
+
+---
+
 ## Step 1: Set Up Your Project Structure
 
 Create a directory layout for your Python plugin project:

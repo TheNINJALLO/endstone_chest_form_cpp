@@ -24,6 +24,24 @@ To help you get started quickly and configure integrations, please refer to the 
 
 ---
 
+## 📦 Release Artifacts Guide
+
+This project compiles into several different release artifacts, each serving a specific purpose:
+
+1. **`endstone_chestform_api.dll` (Windows C++ Server Plugin)**:
+   * **Purpose**: Compiled Windows native C++ plugin for the Endstone server. It intercepts and generates Minecraft Bedrock packets, handles UI state, and exposes C-ABI endpoints.
+   * **Installation**: Place this file inside the `plugins/` directory of your Windows Endstone server.
+
+2. **`endstone_chestform_api.so` (Linux C++ Server Plugin)**:
+   * **Purpose**: Compiled Linux native C++ plugin for the Endstone server. It intercepts and generates Minecraft Bedrock packets, handles UI state, and exposes C-ABI endpoints.
+   * **Installation**: Place this file inside the `plugins/` directory of your Linux Endstone server.
+
+3. **`endstone_chestform_api-X.Y.Z-py3-none-any.whl` (Python Client Wrapper & Developer Stubs)**:
+   * **Purpose**: Python packaging wheel containing Python stubs. This allows Python-based Endstone plugins to interface with the native C++ backend via `ctypes` dynamic loading, and provides type hinting and autocomplete for IDEs.
+   * **Installation**: Install this package via `pip install endstone_chestform_api-X.Y.Z-py3-none-any.whl` (or download/install from GitHub).
+
+---
+
 ## ✨ Features
 
 *   **Flexible Layouts**: Supports both Single Chest (27 slots) and Double Chest (54 slots) layouts.
