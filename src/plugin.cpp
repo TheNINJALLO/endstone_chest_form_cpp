@@ -9,6 +9,7 @@
 #include <endstone/player.h>
 #include <endstone/server.h>
 #include <endstone/scheduler/scheduler.h>
+#include <endstone/inventory/item_stack.h>
 #include <memory>
 #include <vector>
 #include <string>
@@ -84,11 +85,13 @@ private:
         }
 
         FormItem give_kit;
-        give_kit.type_id = "minecraft:diamond_block";
+        give_kit.type_id = "minecraft:chest";
         give_kit.display_name = "§aGive Kit";
         give_kit.lore = {"§7Click to receive a kit!"};
         form.setSlot(13, give_kit, [](endstone::Player& p, int slot) {
             p.sendMessage("§a[ChestForm] You received the builder kit!");
+            p.getInventory().addItem(endstone::ItemStack("minecraft:apple", 1));
+            p.getInventory().addItem(endstone::ItemStack("minecraft:wooden_sword", 1));
         });
 
         FormItem reopen;
@@ -103,7 +106,7 @@ private:
         });
 
         FormItem close;
-        close.type_id = "minecraft:barrier";
+        close.type_id = "minecraft:redstone_block";
         close.display_name = "§cClose";
         close.lore = {"§7Click to close!"};
         form.setSlot(31, close, [](endstone::Player& p, int slot) {
