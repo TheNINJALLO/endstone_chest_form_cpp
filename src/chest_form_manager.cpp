@@ -641,23 +641,9 @@ bool ChestFormManager::handlePacketReceive(endstone::Player& player, int packet_
         int clicked_slot = -1;
 
         for (const auto& req_data : packet.mRequest.mRequests) {
-            if (plugin_) {
-                plugin_->getLogger().info("Request actions size: " + std::to_string(req_data.mActions.size()));
-            }
             for (const auto& action : req_data.mActions) {
-                if (plugin_) {
-                    plugin_->getLogger().info("Action type: " + std::to_string(static_cast<int>(action.mActionType)));
-                }
                 if (std::holds_alternative<sculk::protocol::ItemStackRequestAction::TransferBase>(action.mVariant)) {
                     const auto& transfer = std::get<sculk::protocol::ItemStackRequestAction::TransferBase>(action.mVariant);
-                    if (plugin_) {
-                        plugin_->getLogger().info("TransferBase source enum: " + std::to_string(static_cast<int>(transfer.mSource.mFullContainerName.mContainerEnumName)) +
-                                                  ", dynamicId: " + (transfer.mSource.mFullContainerName.mDynamicId ? std::to_string(*transfer.mSource.mFullContainerName.mDynamicId) : "none") +
-                                                  ", slot: " + std::to_string(transfer.mSource.mSlot) +
-                                                  " | dest enum: " + std::to_string(static_cast<int>(transfer.mDestination.mFullContainerName.mContainerEnumName)) +
-                                                  ", dynamicId: " + (transfer.mDestination.mFullContainerName.mDynamicId ? std::to_string(*transfer.mDestination.mFullContainerName.mDynamicId) : "none") +
-                                                  ", slot: " + std::to_string(transfer.mDestination.mSlot));
-                    }
                     if (transfer.mSource.mFullContainerName.mContainerEnumName == sculk::protocol::ContainerEnumName::DynamicContainer &&
                         transfer.mSource.mFullContainerName.mDynamicId == session.window_id) {
                         matches_our_chest = true;
@@ -668,16 +654,18 @@ bool ChestFormManager::handlePacketReceive(endstone::Player& player, int packet_
                         matches_our_chest = true;
                         clicked_slot = transfer.mDestination.mSlot;
                     }
+                    if (transfer.mSource.mFullContainerName.mContainerEnumName == sculk::protocol::ContainerEnumName::LevelEntityContainer &&
+                        transfer.mSource.mSlot < static_cast<int>(session.size)) {
+                        matches_our_chest = true;
+                        clicked_slot = transfer.mSource.mSlot;
+                    }
+                    if (transfer.mDestination.mFullContainerName.mContainerEnumName == sculk::protocol::ContainerEnumName::LevelEntityContainer &&
+                        transfer.mDestination.mSlot < static_cast<int>(session.size)) {
+                        matches_our_chest = true;
+                        clicked_slot = transfer.mDestination.mSlot;
+                    }
                 } else if (std::holds_alternative<sculk::protocol::ItemStackRequestAction::Swap>(action.mVariant)) {
                     const auto& swap = std::get<sculk::protocol::ItemStackRequestAction::Swap>(action.mVariant);
-                    if (plugin_) {
-                        plugin_->getLogger().info("Swap source enum: " + std::to_string(static_cast<int>(swap.mSource.mFullContainerName.mContainerEnumName)) +
-                                                  ", dynamicId: " + (swap.mSource.mFullContainerName.mDynamicId ? std::to_string(*swap.mSource.mFullContainerName.mDynamicId) : "none") +
-                                                  ", slot: " + std::to_string(swap.mSource.mSlot) +
-                                                  " | dest enum: " + std::to_string(static_cast<int>(swap.mDestination.mFullContainerName.mContainerEnumName)) +
-                                                  ", dynamicId: " + (swap.mDestination.mFullContainerName.mDynamicId ? std::to_string(*swap.mDestination.mFullContainerName.mDynamicId) : "none") +
-                                                  ", slot: " + std::to_string(swap.mDestination.mSlot));
-                    }
                     if (swap.mSource.mFullContainerName.mContainerEnumName == sculk::protocol::ContainerEnumName::DynamicContainer &&
                         swap.mSource.mFullContainerName.mDynamicId == session.window_id) {
                         matches_our_chest = true;
@@ -688,16 +676,15 @@ bool ChestFormManager::handlePacketReceive(endstone::Player& player, int packet_
                         matches_our_chest = true;
                         clicked_slot = swap.mDestination.mSlot;
                     }
-                } else if (std::holds_alternative<sculk::protocol::ItemStackRequestAction::Drop>(action.mVariant)) {
-                    const auto& drop = std::get<sculk::protocol::ItemStackRequestAction::Drop>(action.mVariant);
-                    if (plugin_) {
-                        plugin_->getLogger().info("Drop source enum: " + std::to_string(static_cast<int>(drop.mSource.mFullContainerName.mContainerEnumName)) +
-                                                  ", dynamicId: " + (drop.mSource.mFullContainerName.mDynamicId ? std::to_string(*drop.mSource.mFullContainerName.mDynamicId) : "none") +
-                                                  ", slot: " + std::to_string(drop.mSource.mSlot));
+                    if (swap.mSource.mFullContainerName.mContainerEnumName == sculk::protocol::ContainerEnumName::LevelEntityContainer &&
+                        swap.mSource.mSlot < static_cast<int>(session.size)) {
+                        matches_our_chest = true;
+                        clicked_slot = swap.mSource.mSlot;
                     }
-                } else {
-                    if (plugin_) {
-                        plugin_->getLogger().info("Other action variant type");
+                    if (swap.mDestination.mFullContainerName.mContainerEnumName == sculk::protocol::ContainerEnumName::LevelEntityContainer &&
+                        swap.mDestination.mSlot < static_cast<int>(session.size)) {
+                        matches_our_chest = true;
+                        clicked_slot = swap.mDestination.mSlot;
                     }
                 }
             }
