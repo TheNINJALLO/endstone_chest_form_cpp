@@ -43,7 +43,7 @@ CC=clang-18 CXX=clang++-18 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Relea
 cmake --build build
 ```
 
-The compiled Endstone plugin shared object (`libendstone_chest_form_cpp.so`) will be generated inside the `build` directory. Move it to your Endstone server's `plugins/` directory to load it.
+The compiled Endstone plugin shared object (`endstone_chestform_api.so` on Linux or `endstone_chestform_api.dll` on Windows) will be generated inside the `build` directory. Move it to your Endstone server's `plugins/` directory to load it.
 
 ## Integration Options for Other C++ Plugins
 
@@ -52,21 +52,21 @@ You can declare it in your plugin's `CMakeLists.txt` using CMake's standard fetc
 ```cmake
 include(FetchContent)
 FetchContent_Declare(
-    chest_form_cpp
-    GIT_REPOSITORY https://github.com/TheNINJALLO/endstone_chest_form_cpp.git
+    endstone_chestform_api
+    GIT_REPOSITORY https://github.com/TheNINJALLO/endstone_chestform_api.git
     GIT_TAG master
 )
-FetchContent_MakeAvailable(chest_form_cpp)
+FetchContent_MakeAvailable(endstone_chestform_api)
 
 # Link against the target in your plugin
-target_link_libraries(your_plugin PRIVATE chest_form_cpp)
+target_link_libraries(your_plugin PRIVATE chestform_api)
 ```
 
 ### Option 2: Using find_package (Local Library)
 If installed on the target machine, you can find and link against the library target directly:
 ```cmake
-find_package(chest_form_cpp CONFIG REQUIRED)
-target_link_libraries(your_plugin PRIVATE chest_form_cpp::chest_form_cpp)
+find_package(endstone_chestform_api CONFIG REQUIRED)
+target_link_libraries(your_plugin PRIVATE endstone_chestform_api::chestform_api)
 ```
 
 ---
@@ -89,7 +89,7 @@ Add the following binding code to your C++ codebase (e.g., in `src/bindings.cpp`
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(endstone_chest_form, m) {
+PYBIND11_MODULE(endstone_chestform_api, m) {
     m.doc() = "Python bindings for Endstone ChestFormAPI";
 
     py::enum_<ChestSize>(m, "ChestSize")
@@ -131,8 +131,8 @@ requires = ["scikit-build-core>=0.5.0", "pybind11>=2.11.0"]
 build-backend = "scikit-build-core.build"
 
 [project]
-name = "endstone_chest_form"
-version = "1.0.1"
+name = "endstone-chestform-api"
+version = "2.0.0"
 description = "Python wrapper for Endstone C++ ChestFormAPI"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -149,17 +149,17 @@ python -m build --wheel
 
 This generates a `.whl` package in the `dist/` directory, which can be installed in any Endstone server environment using:
 ```bash
-pip install dist/endstone_chest_form-1.0.1-*.whl
+pip install dist/endstone_chestform_api-2.0.0-*.whl
 ```
 
 ### 3. Example Python API Usage
 
-Once the wheel is installed, you can import and use `endstone_chest_form` in any Python Endstone plugin:
+Once the wheel is installed, you can import and use `endstone_chestform_api` in any Python Endstone plugin:
 
 ```python
 from endstone.plugin import Plugin
 from endstone.player import Player
-from endstone_chest_form import ChestForm, FormItem, ChestSize
+from endstone_chestform_api import ChestForm, FormItem, ChestSize
 
 class MyPythonPlugin(Plugin):
     def on_enable(self) -> None:

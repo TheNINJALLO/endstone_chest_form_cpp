@@ -1,6 +1,6 @@
 # Compatibility Notes
 
-This document describes the Minecraft Bedrock protocol specifications and IDs used by the `endstone_chest_form_cpp` plugin to construct fake chest forms.
+This document describes the Minecraft Bedrock protocol specifications and IDs used by the `endstone_chestform_api` plugin to construct fake chest forms.
 
 ## Tested Protocol Configuration
 

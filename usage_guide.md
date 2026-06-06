@@ -17,15 +17,15 @@ Include the headers and link the library:
 target_include_directories(my_plugin PRIVATE path/to/ChestformAPI/include)
 
 # Link against the ChestFormAPI shared library
-target_link_libraries(my_plugin PRIVATE chest_form_cpp)
+target_link_libraries(my_plugin PRIVATE chestform_api)
 ```
 
 ### Python Plugins (`pyproject.toml`)
-Add `endstone_chest_form` to your dependencies. You can auto-compile and pull directly from the main GitHub repository:
+Add `endstone-chestform-api` to your dependencies. You can install it via PyPI or directly from the GitHub repository:
 ```toml
 dependencies = [
     "endstone>=0.11.0",
-    "endstone_chest_form @ git+https://github.com/TheNINJALLO/endstone_chest_form_cpp.git@master"
+    "endstone-chestform-api"
 ]
 ```
 
@@ -63,7 +63,7 @@ void openSimpleForm(endstone::Plugin& plugin, endstone::Player& player) {
 ```python
 from endstone.player import Player
 from endstone.plugin import Plugin
-from endstone_chest_form import ChestForm, FormItem, ChestSize
+from endstone_chestform_api import ChestForm, FormItem, ChestSize
 
 def open_simple_form(plugin: Plugin, player: Player):
     # Create a 27-slot chest form with a customized title
@@ -213,7 +213,7 @@ void openEnderChestMirror(endstone::Plugin& plugin, endstone::Player& player) {
 from endstone.player import Player
 from endstone.plugin import Plugin
 from endstone.inventory import ItemStack
-from endstone_chest_form import ChestForm, FormItem, ChestSize
+from endstone_chestform_api import ChestForm, FormItem, ChestSize
 
 def open_ender_chest_mirror(plugin: Plugin, player: Player):
     form = ChestForm(plugin, "§5Your Ender Chest", ChestSize.SINGLE)
