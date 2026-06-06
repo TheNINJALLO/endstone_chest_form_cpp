@@ -38,6 +38,7 @@ public:
 
     void openForm(endstone::Player& player, const ChestForm& form);
     void closeForm(endstone::Player& player, bool client_initiated = false);
+    void updateForm(endstone::Player& player, const ChestForm& form);
 
     // Packet interceptors called from Endstone events
     void handlePacketSend(endstone::Player& player, int packet_id, std::string_view payload);

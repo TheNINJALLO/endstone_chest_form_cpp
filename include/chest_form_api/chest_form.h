@@ -27,8 +27,12 @@ public:
     ChestForm& fillSlots(FormItem item);
     ChestForm& clearSlot(int slot);
 
+    ChestForm& setTitle(std::string title);
+    ChestForm& setSize(ChestSize size);
+
     void sendTo(endstone::Player& player);
     void close(endstone::Player& player);
+    void update(endstone::Player& player);
 
     // Getters for manager access
     [[nodiscard]] const std::string& getTitle() const { return title_; }

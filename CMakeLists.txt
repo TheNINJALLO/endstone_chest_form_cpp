@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(endstone_chest_form_cpp VERSION 1.0.5 LANGUAGES CXX)
+project(endstone_chest_form_cpp VERSION 1.0.6 LANGUAGES CXX)
 
 # Set C++ Standard
 set(CMAKE_CXX_STANDARD 23)

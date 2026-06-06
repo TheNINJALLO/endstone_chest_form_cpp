@@ -37,3 +37,18 @@ void ChestForm::sendTo(endstone::Player& player) {
 void ChestForm::close(endstone::Player& player) {
     ChestFormManager::getInstance().closeForm(player);
 }
+
+ChestForm& ChestForm::setTitle(std::string title) {
+    title_ = std::move(title);
+    return *this;
+}
+
+ChestForm& ChestForm::setSize(ChestSize size) {
+    size_ = size;
+    return *this;
+}
+
+void ChestForm::update(endstone::Player& player) {
+    ChestFormManager::getInstance().updateForm(player, *this);
+}
+

@@ -426,9 +426,111 @@ void ChestFormManager::closeForm(endstone::Player& player, bool client_initiated
     }
 }
 
+void ChestFormManager::updateForm(endstone::Player& player, const ChestForm& form) {
+    auto uuid = player.getUniqueId().str();
+    auto it = active_sessions_.find(uuid);
+    if (it == active_sessions_.end() || !it->second.is_open) {
+        openForm(player, form);
+        return;
+    }
+
+    auto& session = it->second;
+
+    if (session.size != form.getSize() || session.title != form.getTitle()) {
+        openForm(player, form);
+        return;
+    }
+
+    session.slots = form.getItems();
+    session.callbacks = form.getCallbacks();
+
+    bool is_double = (session.size == ChestSize::Double);
+    int pair_x = session.chest_x + 1;
+    int pair_z = session.chest_z;
+
+    sculk::protocol::BlockActorDataPacket actor1;
+    actor1.mBlockPosition = {session.chest_x, session.chest_y, session.chest_z};
+
+    sculk::protocol::CompoundTag compound1;
+    compound1.mValue["id"] = sculk::protocol::TagVariant{sculk::protocol::StringTag{"Chest"}};
+    compound1.mValue["x"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{session.chest_x}};
+    compound1.mValue["y"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{session.chest_y}};
+    compound1.mValue["z"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{session.chest_z}};
+    compound1.mValue["Findable"] = sculk::protocol::TagVariant{sculk::protocol::ByteTag{0}};
+    compound1.mValue["isMovable"] = sculk::protocol::TagVariant{sculk::protocol::ByteTag{1}};
+
+    sculk::protocol::ListTag items1;
+    items1.mType = sculk::protocol::TagType::Compound;
+    for (int i = 0; i < 27; ++i) {
+        auto slot_it = session.slots.find(i);
+        if (slot_it != session.slots.end()) {
+            items1.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
+        } else {
+            items1.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
+        }
+    }
+    compound1.mValue["Items"] = sculk::protocol::TagVariant{items1};
+
+    if (is_double) {
+        compound1.mValue["pairx"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{pair_x}};
+        compound1.mValue["pairz"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{pair_z}};
+        compound1.mValue["pairlead"] = sculk::protocol::TagVariant{sculk::protocol::ByteTag{1}};
+    }
+    compound1.mValue["CustomName"] = sculk::protocol::TagVariant{sculk::protocol::StringTag{session.title}};
+    actor1.mActorDataTags = std::move(compound1);
+    sendPacketHelper(player, actor1);
+
+    if (is_double) {
+        sculk::protocol::BlockActorDataPacket actor2;
+        actor2.mBlockPosition = {pair_x, session.chest_y, pair_z};
+
+        sculk::protocol::CompoundTag compound2;
+        compound2.mValue["id"] = sculk::protocol::TagVariant{sculk::protocol::StringTag{"Chest"}};
+        compound2.mValue["x"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{pair_x}};
+        compound2.mValue["y"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{session.chest_y}};
+        compound2.mValue["z"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{pair_z}};
+        compound2.mValue["Findable"] = sculk::protocol::TagVariant{sculk::protocol::ByteTag{0}};
+        compound2.mValue["isMovable"] = sculk::protocol::TagVariant{sculk::protocol::ByteTag{1}};
+
+        sculk::protocol::ListTag items2;
+        items2.mType = sculk::protocol::TagType::Compound;
+        for (int i = 0; i < 27; ++i) {
+            auto slot_it = session.slots.find(i + 27);
+            if (slot_it != session.slots.end()) {
+                items2.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
+            } else {
+                items2.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
+            }
+        }
+        compound2.mValue["Items"] = sculk::protocol::TagVariant{items2};
+
+        compound2.mValue["pairx"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{session.chest_x}};
+        compound2.mValue["pairz"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{session.chest_z}};
+        compound2.mValue["pairlead"] = sculk::protocol::TagVariant{sculk::protocol::ByteTag{0}};
+        compound2.mValue["CustomName"] = sculk::protocol::TagVariant{sculk::protocol::StringTag{session.title}};
+        actor2.mActorDataTags = std::move(compound2);
+        sendPacketHelper(player, actor2);
+    }
+
+    sculk::protocol::InventoryContentPacket content;
+    content.mInventoryId = session.window_id;
+    int total_slots = static_cast<int>(session.size);
+    content.mSlots.resize(total_slots);
+    for (int i = 0; i < total_slots; ++i) {
+        auto slot_it = session.slots.find(i);
+        if (slot_it != session.slots.end()) {
+            content.mSlots[i] = serializeFormItem(slot_it->second);
+        } else {
+            sculk::protocol::NetworkItemStackDescriptor empty_desc;
+            empty_desc.mId = 0;
+            content.mSlots[i] = empty_desc;
+        }
+    }
+    sendPacketHelper(player, content);
+}
+
 void ChestFormManager::handlePacketSend(endstone::Player& player, int packet_id, std::string_view payload) {
-    // 137 is ItemRegistryPacket
-    if (packet_id == 137) {
+    if (packet_id == static_cast<int>(sculk::protocol::MinecraftPacketIds::ItemRegistry)) {
         sculk::protocol::ReadOnlyBinaryStream stream(payload);
         sculk::protocol::ItemRegistryPacket packet;
         if (packet.read(stream)) {
@@ -580,6 +682,24 @@ std::int16_t ChestFormManager::getItemId(const std::string& name) const {
     if (it != item_name_to_id_.end()) {
         return it->second;
     }
+
+    static const std::unordered_map<std::string, std::int16_t> fallback_ids = {
+        {"minecraft:stained_glass_pane", 160},
+        {"minecraft:black_stained_glass_pane", -657},
+        {"minecraft:diamond_block", 57},
+        {"minecraft:emerald", 388},
+        {"minecraft:barrier", 416},
+        {"minecraft:stone", 1},
+        {"minecraft:diamond", 264},
+        {"minecraft:gold_ingot", 266},
+        {"minecraft:iron_ingot", 265},
+        {"minecraft:chest", 54}
+    };
+    auto fallback_it = fallback_ids.find(name);
+    if (fallback_it != fallback_ids.end()) {
+        return fallback_it->second;
+    }
+
     // Attempt parsing raw numerical value from string if name is digits
     try {
         return static_cast<std::int16_t>(std::stoi(name));
