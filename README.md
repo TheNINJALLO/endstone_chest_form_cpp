@@ -42,11 +42,13 @@ The plugin includes built-in commands for operators/admins to inspect and modera
 *   **`/chestinvsee <player: str>`** — Opens a 54-slot chest interface displaying the target player's inventory, hotbar, and armor slots.
 *   **`/chestendersee <player: str>`** — Opens a 27-slot chest interface displaying the target player's virtual ender chest contents.
 
-### Inventory Moderation Actions
-Inside either the inventory or ender chest viewer GUI, admins can click on any item stack to open a dedicated **Management Menu**:
-1.  **Clone Items**: Click the **Emerald** block (`§aClone Item`) to copy the selected item stack directly to your own (the admin's) inventory.
-2.  **Delete Items**: Click the **Redstone Block** (`§cDelete Item`) to permanently erase the selected item stack from the target player's inventory or virtual ender chest.
-3.  **Go Back**: Click the **Arrow** (`§eGo Back`) to return to the target player's main inventory/ender chest view.
+### Step-by-Step Moderation Flow
+1.  **Open Inspector**: Run `/chestinvsee <player: str>` or `/chestendersee <player: str>` to view their items. Non-item slots and borders are filled with **Deny blocks (`minecraft:deny`)** to cleanly represent locked/disabled slots (similar to the auto crafter's locked slots).
+2.  **Select Item**: Click on the specific item stack you want to manage.
+3.  **Perform Action**: Clicking the item opens a **Management Submenu** for that slot index, displaying:
+    *   **Clone**: Click the **Emerald** (`§aClone Item`) to copy the item stack directly to your own inventory.
+    *   **Delete**: Click the **Redstone Block** (`§cDelete Item`) to permanently erase the item stack from the target player's inventory or virtual ender chest.
+    *   **Go Back**: Click the **Arrow** (`§eGo Back`) to return to the main inventory/ender chest screen.
 
 ---
 
