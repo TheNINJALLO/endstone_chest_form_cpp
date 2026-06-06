@@ -37,5 +37,5 @@ jobs:
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: endstone_chest_form_cpp
-        path: build/endstone_chest_form_cpp.so
+        name: endstone_chestform_api
+        path: build/endstone_chestform_api.so

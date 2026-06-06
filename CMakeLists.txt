@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(endstone_chest_form_cpp VERSION 1.0.6 LANGUAGES CXX)
+project(endstone_chestform_api VERSION 1.0.6 LANGUAGES CXX)
 
 # Set C++ Standard
 set(CMAKE_CXX_STANDARD 23)
@@ -74,22 +74,22 @@ else()
 endif()
 
 # Build the Shared Library/Plugin using the Endstone helper function
-endstone_add_plugin(chest_form_cpp ${SRC_FILES})
+endstone_add_plugin(chestform_api ${SRC_FILES})
 
 
 # Compiler Definitions & Header Inclusion
-target_include_directories(chest_form_cpp PUBLIC ${INC_DIRS})
-target_compile_definitions(chest_form_cpp PRIVATE CHEST_FORM_API_EXPORTS)
+target_include_directories(chestform_api PUBLIC ${INC_DIRS})
+target_compile_definitions(chestform_api PRIVATE CHEST_FORM_API_EXPORTS)
 
 # Compiler-specific settings
 if(MSVC)
-    target_compile_options(chest_form_cpp PRIVATE /W4 /utf-8)
+    target_compile_options(chestform_api PRIVATE /W4 /utf-8)
 else()
-    target_compile_options(chest_form_cpp PRIVATE -Wall -Wextra -Wpedantic -Wno-invalid-constexpr)
+    target_compile_options(chestform_api PRIVATE -Wall -Wextra -Wpedantic -Wno-invalid-constexpr)
 endif()
 
 # Link Dependencies
-target_link_libraries(chest_form_cpp 
+target_link_libraries(chestform_api 
     PRIVATE 
         Protocol::Protocol
 )
@@ -100,7 +100,7 @@ install(DIRECTORY include/chest_form_api/
     FILES_MATCHING PATTERN "*.h"
 )
 
-install(TARGETS chest_form_cpp
+install(TARGETS chestform_api
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
 )
