@@ -284,6 +284,7 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
     }
 
     // Initialize block actor data for titles/double-chest setup
+    std::int16_t filler_id = getItemIdWithoutFallback("ninjos:disabledslot");
     sculk::protocol::BlockActorDataPacket actor1;
     actor1.mBlockPosition = {session.chest_x, session.chest_y, session.chest_z};
 
@@ -301,6 +302,12 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
         auto slot_it = session.slots.find(i);
         if (slot_it != session.slots.end()) {
             items1.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
+        } else if (filler_id != 0) {
+            FormItem filler;
+            filler.type_id = "ninjos:disabledslot";
+            filler.amount = 1;
+            filler.display_name = " ";
+            items1.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(filler, i)});
         } else {
             items1.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
         }
@@ -334,6 +341,12 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
             auto slot_it = session.slots.find(i + 27);
             if (slot_it != session.slots.end()) {
                 items2.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
+            } else if (filler_id != 0) {
+                FormItem filler;
+                filler.type_id = "ninjos:disabledslot";
+                filler.amount = 1;
+                filler.display_name = " ";
+                items2.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(filler, i)});
             } else {
                 items2.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
             }
@@ -458,6 +471,8 @@ void ChestFormManager::updateForm(endstone::Player& player, const ChestForm& for
     int pair_x = session.chest_x + 1;
     int pair_z = session.chest_z;
 
+    std::int16_t filler_id = getItemIdWithoutFallback("ninjos:disabledslot");
+
     sculk::protocol::BlockActorDataPacket actor1;
     actor1.mBlockPosition = {session.chest_x, session.chest_y, session.chest_z};
 
@@ -475,6 +490,12 @@ void ChestFormManager::updateForm(endstone::Player& player, const ChestForm& for
         auto slot_it = session.slots.find(i);
         if (slot_it != session.slots.end()) {
             items1.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
+        } else if (filler_id != 0) {
+            FormItem filler;
+            filler.type_id = "ninjos:disabledslot";
+            filler.amount = 1;
+            filler.display_name = " ";
+            items1.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(filler, i)});
         } else {
             items1.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
         }
@@ -508,6 +529,12 @@ void ChestFormManager::updateForm(endstone::Player& player, const ChestForm& for
             auto slot_it = session.slots.find(i + 27);
             if (slot_it != session.slots.end()) {
                 items2.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
+            } else if (filler_id != 0) {
+                FormItem filler;
+                filler.type_id = "ninjos:disabledslot";
+                filler.amount = 1;
+                filler.display_name = " ";
+                items2.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(filler, i)});
             } else {
                 items2.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
             }
@@ -522,7 +549,6 @@ void ChestFormManager::updateForm(endstone::Player& player, const ChestForm& for
         sendPacketHelper(player, actor2);
     }
 
-    std::int16_t filler_id = getItemIdWithoutFallback("ninjos:disabledslot");
     sculk::protocol::InventoryContentPacket content;
     content.mInventoryId = session.window_id;
     int total_slots = static_cast<int>(session.size);
