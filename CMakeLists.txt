@@ -71,7 +71,7 @@ target_compile_definitions(chest_form_cpp PRIVATE CHEST_FORM_API_EXPORTS)
 if(MSVC)
     target_compile_options(chest_form_cpp PRIVATE /W4 /utf-8)
 else()
-    target_compile_options(chest_form_cpp PRIVATE -Wall -Wextra -Wpedantic -fvisibility=hidden)
+    target_compile_options(chest_form_cpp PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 # Link Dependencies
