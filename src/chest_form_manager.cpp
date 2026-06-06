@@ -100,6 +100,62 @@ static sculk::protocol::NetworkItemStackDescriptor serializeFormItem(const FormI
     return desc;
 }
 
+static sculk::protocol::CompoundTag serializeFormItemToNbt(const FormItem& item, std::uint8_t slot) {
+    sculk::protocol::CompoundTag nbt;
+    if (item.type_id.empty() || item.type_id == "minecraft:air") {
+        return nbt;
+    }
+
+    nbt.mValue["Slot"] = sculk::protocol::TagVariant{sculk::protocol::ByteTag{static_cast<std::int8_t>(slot)}};
+    nbt.mValue["Name"] = sculk::protocol::TagVariant{sculk::protocol::StringTag{item.type_id}};
+    nbt.mValue["Count"] = sculk::protocol::TagVariant{sculk::protocol::ByteTag{static_cast<std::int8_t>(item.amount)}};
+    nbt.mValue["Damage"] = sculk::protocol::TagVariant{sculk::protocol::ShortTag{static_cast<std::int16_t>(item.aux)}};
+    nbt.mValue["WasPickedUp"] = sculk::protocol::TagVariant{sculk::protocol::ByteTag{0}};
+
+    // Display Name and Lore
+    sculk::protocol::CompoundTag display_compound;
+    if (!item.display_name.empty()) {
+        display_compound.mValue["Name"] = sculk::protocol::TagVariant{sculk::protocol::StringTag{item.display_name}};
+    }
+    if (!item.lore.empty()) {
+        sculk::protocol::ListTag lore_list;
+        lore_list.mType = sculk::protocol::TagType::String;
+        for (const auto& line : item.lore) {
+            lore_list.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::StringTag{line}});
+        }
+        display_compound.mValue["Lore"] = sculk::protocol::TagVariant{lore_list};
+    }
+
+    sculk::protocol::CompoundTag main_compound;
+    if (!display_compound.mValue.empty()) {
+        main_compound.mValue["display"] = sculk::protocol::TagVariant{display_compound};
+    }
+
+    // Enchantments
+    if (!item.enchants.empty()) {
+        sculk::protocol::ListTag enchant_list;
+        enchant_list.mType = sculk::protocol::TagType::Compound;
+        for (const auto& [id_str, lvl] : item.enchants) {
+            sculk::protocol::CompoundTag enchant_tag;
+            short id = 0;
+            try {
+                id = static_cast<short>(std::stoi(id_str));
+            } catch (...) {}
+            enchant_tag.mValue["id"] = sculk::protocol::TagVariant{sculk::protocol::ShortTag{id}};
+            enchant_tag.mValue["lvl"] = sculk::protocol::TagVariant{sculk::protocol::ShortTag{static_cast<short>(lvl)}};
+            enchant_list.mValue.push_back(sculk::protocol::TagVariant{enchant_tag});
+        }
+        main_compound.mValue["ench"] = sculk::protocol::TagVariant{enchant_list};
+    }
+
+    if (!main_compound.mValue.empty()) {
+        nbt.mValue["tag"] = sculk::protocol::TagVariant{main_compound};
+    }
+
+    return nbt;
+}
+
+
 ChestFormManager& ChestFormManager::getInstance() {
     static ChestFormManager instance;
     return instance;
@@ -235,9 +291,25 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
     compound1.mValue["x"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{session.chest_x}};
     compound1.mValue["y"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{session.chest_y}};
     compound1.mValue["z"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{session.chest_z}};
+    compound1.mValue["Findable"] = sculk::protocol::TagVariant{sculk::protocol::ByteTag{0}};
+    compound1.mValue["isMovable"] = sculk::protocol::TagVariant{sculk::protocol::ByteTag{1}};
+
+    sculk::protocol::ListTag items1;
+    items1.mType = sculk::protocol::TagType::Compound;
+    for (int i = 0; i < 27; ++i) {
+        auto slot_it = session.slots.find(i);
+        if (slot_it != session.slots.end()) {
+            items1.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
+        } else {
+            items1.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
+        }
+    }
+    compound1.mValue["Items"] = sculk::protocol::TagVariant{items1};
+
     if (is_double) {
         compound1.mValue["pairx"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{pair_x}};
         compound1.mValue["pairz"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{pair_z}};
+        compound1.mValue["pairlead"] = sculk::protocol::TagVariant{sculk::protocol::ByteTag{1}};
     }
     compound1.mValue["CustomName"] = sculk::protocol::TagVariant{sculk::protocol::StringTag{session.title}};
     actor1.mActorDataTags = std::move(compound1);
@@ -252,14 +324,30 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
         compound2.mValue["x"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{pair_x}};
         compound2.mValue["y"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{session.chest_y}};
         compound2.mValue["z"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{pair_z}};
+        compound2.mValue["Findable"] = sculk::protocol::TagVariant{sculk::protocol::ByteTag{0}};
+        compound2.mValue["isMovable"] = sculk::protocol::TagVariant{sculk::protocol::ByteTag{1}};
+
+        sculk::protocol::ListTag items2;
+        items2.mType = sculk::protocol::TagType::Compound;
+        for (int i = 0; i < 27; ++i) {
+            auto slot_it = session.slots.find(i + 27);
+            if (slot_it != session.slots.end()) {
+                items2.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
+            } else {
+                items2.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
+            }
+        }
+        compound2.mValue["Items"] = sculk::protocol::TagVariant{items2};
+
         compound2.mValue["pairx"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{session.chest_x}};
         compound2.mValue["pairz"] = sculk::protocol::TagVariant{sculk::protocol::IntTag{session.chest_z}};
+        compound2.mValue["pairlead"] = sculk::protocol::TagVariant{sculk::protocol::ByteTag{0}};
         compound2.mValue["CustomName"] = sculk::protocol::TagVariant{sculk::protocol::StringTag{session.title}};
         actor2.mActorDataTags = std::move(compound2);
         sendPacketHelper(player, actor2);
     }
 
-    // 3. Open Container UI (delayed by 2 ticks to allow client construction of block actor)
+    // 3. Open Container UI (delayed by 5 ticks to allow client construction of block actor)
     if (plugin_) {
         auto player_uuid = player.getUniqueId();
         plugin_->getServer().getScheduler().runTaskLater(*plugin_, [this, player_uuid, uuid, window_id = session.window_id, chest_x = session.chest_x, chest_y = session.chest_y, chest_z = session.chest_z, size = session.size]() {
@@ -294,7 +382,7 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
                 }
             }
             sendPacketHelper(*current_player, content);
-        }, 2);
+        }, 5);
     }
 }
 

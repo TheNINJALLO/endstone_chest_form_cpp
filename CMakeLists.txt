@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(endstone_chest_form_cpp VERSION 1.0.3 LANGUAGES CXX)
+project(endstone_chest_form_cpp VERSION 1.0.4 LANGUAGES CXX)
 
 # Set C++ Standard
 set(CMAKE_CXX_STANDARD 23)
@@ -56,12 +56,18 @@ if(NOT Protocol_FOUND)
         GIT_TAG main
     )
     FetchContent_MakeAvailable(Protocol)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
+        if(TARGET Protocol)
+            target_compile_options(Protocol PRIVATE -Wno-invalid-constexpr)
+        endif()
+    endif()
 else()
     message(STATUS "Protocol library found locally!")
 endif()
 
 # Build the Shared Library/Plugin using the Endstone helper function
 endstone_add_plugin(chest_form_cpp ${SRC_FILES})
+
 
 # Compiler Definitions & Header Inclusion
 target_include_directories(chest_form_cpp PUBLIC ${INC_DIRS})
@@ -71,7 +77,7 @@ target_compile_definitions(chest_form_cpp PRIVATE CHEST_FORM_API_EXPORTS)
 if(MSVC)
     target_compile_options(chest_form_cpp PRIVATE /W4 /utf-8)
 else()
-    target_compile_options(chest_form_cpp PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(chest_form_cpp PRIVATE -Wall -Wextra -Wpedantic -Wno-invalid-constexpr)
 endif()
 
 # Link Dependencies
