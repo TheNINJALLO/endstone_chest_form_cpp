@@ -1,4 +1,8 @@
-# Compatibility Notes
+# Protocol Compatibility Notes
+
+[« Back to README](README.md) | [Developer & Usage Guide](usage_guide.md) | [Python Packaging Guide](python_wheel_guide.md) | **Compatibility Notes**
+
+---
 
 This document describes the Minecraft Bedrock protocol specifications and IDs used by the `endstone_chestform_api` plugin to construct fake chest forms.
 

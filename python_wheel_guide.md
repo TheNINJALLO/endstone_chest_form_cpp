@@ -1,6 +1,6 @@
-# How-To: Build and Package Python Endstone Plugins using ChestFormAPI
+# Python Packaging & Deployment Guide
 
-This guide explains how to build, package, and deploy a Python-based Endstone plugin as a Python Wheel (`.whl`) that uses the `ChestFormAPI` to create and handle fake chest inventory GUIs.
+[« Back to README](README.md) | [Developer & Usage Guide](usage_guide.md) | **Python Packaging Guide** | [Compatibility Notes](compatibility_notes.md)
 
 ---
 

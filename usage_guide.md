@@ -1,5 +1,9 @@
 # ChestFormAPI Developer & Usage Guide
 
+[« Back to README](README.md) | **Developer & Usage Guide** | [Python Packaging Guide](python_wheel_guide.md) | [Compatibility Notes](compatibility_notes.md)
+
+---
+
 `ChestFormAPI` is a native C++23 Endstone library/plugin designed to open virtual chest GUIs entirely server-side using Bedrock packet-spoofing. It requires **no client-side resource packs or addons** and allows you to create interactive menus, custom buttons, and mirror player containers (e.g. Ender Chests and inventories).
 
 This guide covers usage in both **C++** and **Python**.
