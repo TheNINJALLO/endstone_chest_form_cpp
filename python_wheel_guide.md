@@ -54,12 +54,22 @@ classifiers = [
 ]
 dependencies = [
     "endstone>=0.11.0",
-    "endstone_chest_form>=1.0.0"
+    # Option A: If pre-installed manually on the server or published to PyPI:
+    # "endstone_chest_form>=1.0.0"
+    
+    # Option B: Auto-download, build, and compile directly from GitHub (Recommended):
+    "endstone_chest_form @ git+https://github.com/TheNINJALLO/endstone_chest_form_cpp.git@master"
 ]
 
 [project.entry-points."endstone.plugins"]
 my_selector_plugin = "my_selector_plugin.plugin:MySelectorPlugin"
 ```
+
+> [!NOTE]
+> **How does `pip` resolve the `endstone_chest_form` dependency?**
+>
+> * **With Option A (`"endstone_chest_form>=1.0.0"`)**: `pip` will try to download it from the public PyPI registry. If you haven't published it there, it will fail unless you have manually pre-installed the `.whl` module on the server first using `pip install endstone_chest_form-1.0.0-*.whl`.
+> * **With Option B (`"endstone_chest_form @ git+..."`)**: When a user installs your plugin via `pip install my_selector_plugin-1.0.0-py3-none-any.whl`, `pip` will automatically clone the GitHub repository, compile the C++ pybind11 module on the target machine, and install it as a dependency automatically!
 
 > [!IMPORTANT]
 > The `[project.entry-points."endstone.plugins"]` section tells the Endstone server how to locate your plugin's main entry point class (`MySelectorPlugin` inside `src/my_selector_plugin/plugin.py`).
