@@ -155,10 +155,10 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
         next_window_id_ = 50;
     }
 
-    // Place the fake block 4 blocks below the player's current position to keep it out of reach
+    // Place the fake block at the player's current position to guarantee it is within world boundaries
     auto location = player.getLocation();
     session.chest_x = static_cast<int>(std::floor(location.getX()));
-    session.chest_y = static_cast<int>(std::floor(location.getY())) - 4;
+    session.chest_y = static_cast<int>(std::floor(location.getY()));
     session.chest_z = static_cast<int>(std::floor(location.getZ()));
 
     // Store original blocks to restore them later
