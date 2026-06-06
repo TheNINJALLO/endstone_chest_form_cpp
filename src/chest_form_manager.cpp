@@ -155,14 +155,34 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
         next_window_id_ = 50;
     }
 
-    // Place the fake block at the player's current position to guarantee it is within world boundaries
+    // Place the fake block at a safe coordinate near the player
     auto location = player.getLocation();
+    auto& dimension = player.getDimension();
     session.chest_x = static_cast<int>(std::floor(location.getX()));
-    session.chest_y = static_cast<int>(std::floor(location.getY()));
+
+    // Dynamically calculate target Y coordinate to avoid out-of-bounds while preventing player collision
+    int target_y = static_cast<int>(std::floor(location.getY())) + 4;
+    auto dim_name = dimension.getName();
+    int min_y = -64;
+    int max_y = 319;
+    if (dim_name == "Nether") {
+        min_y = 0;
+        max_y = 127;
+    } else if (dim_name == "The End") {
+        min_y = 0;
+        max_y = 255;
+    }
+
+    if (target_y > max_y) {
+        target_y = static_cast<int>(std::floor(location.getY())) - 3;
+        if (target_y < min_y) {
+            target_y = static_cast<int>(std::floor(location.getY()));
+        }
+    }
+    session.chest_y = target_y;
     session.chest_z = static_cast<int>(std::floor(location.getZ()));
 
     // Store original blocks to restore them later
-    auto& dimension = player.getDimension();
     auto block1 = dimension.getBlockAt(session.chest_x, session.chest_y, session.chest_z);
     session.original_block_runtime_id_1 = (block1 && block1->getData()) ? block1->getData()->getRuntimeId() : air_runtime_id_;
 
