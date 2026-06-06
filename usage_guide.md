@@ -2,16 +2,16 @@
 
 `ChestFormAPI` is a native C++23 Endstone library/plugin designed to open virtual chest GUIs entirely server-side using Bedrock packet-spoofing. It requires **no client-side resource packs or addons** and allows you to create interactive menus, custom buttons, and mirror player containers (e.g. Ender Chests and inventories).
 
+This guide covers usage in both **C++** and **Python**.
+
 ---
 
-## 1. Adding as a Dependency
+## 1. Installation & Dependencies
 
-To use `ChestFormAPI` in your own Endstone C++ plugin, add it to your `CMakeLists.txt`.
+To use `ChestFormAPI` in your plugin project, you must set it up as a dependency.
 
-### CMake Configuration
-
-If you're compiling against it, include the API headers and link the library:
-
+### C++ Plugins (`CMakeLists.txt`)
+Include the headers and link the library:
 ```cmake
 # Include ChestFormAPI headers
 target_include_directories(my_plugin PRIVATE path/to/ChestformAPI/include)
@@ -20,12 +20,22 @@ target_include_directories(my_plugin PRIVATE path/to/ChestformAPI/include)
 target_link_libraries(my_plugin PRIVATE chest_form_cpp)
 ```
 
+### Python Plugins (`pyproject.toml`)
+Add `endstone_chest_form` to your dependencies. You can auto-compile and pull directly from the main GitHub repository:
+```toml
+dependencies = [
+    "endstone>=0.11.0",
+    "endstone_chest_form @ git+https://github.com/TheNINJALLO/endstone_chest_form_cpp.git@master"
+]
+```
+
 ---
 
 ## 2. Basic Usage (27 or 54 Slots, Custom Title)
 
 You can choose between a **Single Chest (27 slots)** or a **Double Chest (54 slots)** using the `ChestSize` enum, and configure any title string you want.
 
+### C++
 ```cpp
 #include "chest_form_api/chest_form.h"
 #include <endstone/player.h>
@@ -49,12 +59,38 @@ void openSimpleForm(endstone::Plugin& plugin, endstone::Player& player) {
 }
 ```
 
+### Python
+```python
+from endstone.player import Player
+from endstone.plugin import Plugin
+from endstone_chest_form import ChestForm, FormItem, ChestSize
+
+def open_simple_form(plugin: Plugin, player: Player):
+    # Create a 27-slot chest form with a customized title
+    form = ChestForm(plugin, "§dMy Virtual Vault", ChestSize.SINGLE)
+
+    # Set slot 13 (center of single chest) to a Golden Apple
+    apple = FormItem()
+    apple.type_id = "minecraft:golden_apple"
+    apple.display_name = "§6Golden Apple"
+    apple.lore = ["§7Tastes delicious!", "§eClick to eat!"]
+
+    def on_click(p: Player, slot: int):
+        p.send_message("§aYou clicked the golden apple!")
+
+    form.set_slot(13, apple, on_click)
+
+    # Display the chest form to the player
+    form.send_to(player)
+```
+
 ---
 
 ## 3. Dynamic Updates (Renaming & Changing Size)
 
-The API supports modifying the layout on the fly. If you modify the slots, call `form.update(player)` to push changes to the open GUI. If you change the title or size, calling `update` will automatically recreate the window.
+The API supports modifying the layout on the fly. If you modify the slots, call `update` to push changes to the open GUI. If you change the title or size, calling `update` will automatically recreate the window.
 
+### C++
 ```cpp
 // Change title dynamically
 form.setTitle("§bUpdated Title");
@@ -66,12 +102,25 @@ form.setSize(ChestSize::Double);
 form.update(player);
 ```
 
+### Python
+```python
+# Change title dynamically
+form.set_title("§bUpdated Title")
+
+# Change size to double chest
+form.set_size(ChestSize.DOUBLE)
+
+# Re-send or update for the player
+form.update(player)
+```
+
 ---
 
 ## 4. Building Interactive Buttons
 
-Use the slot callbacks to create buttons that trigger actions, close the inventory, or transition to other pages.
+Use slot callbacks to create buttons that trigger actions, close the inventory, or transition to other pages.
 
+### C++
 ```cpp
 // 1. Close Button
 FormItem close_button;
@@ -91,14 +140,35 @@ form.setSlot(4, spawn_teleport, [](endstone::Player& p, int slot) {
 });
 ```
 
+### Python
+```python
+from endstone_chest_form import ChestFormManager
+
+# 1. Close Button
+close_button = FormItem()
+close_button.type_id = "minecraft:barrier"
+close_button.display_name = "§cClose Menu"
+form.set_slot(8, close_button, lambda p, slot: form.close(p))
+
+# 2. Command Trigger Button
+spawn_teleport = FormItem()
+spawn_teleport.type_id = "minecraft:ender_pearl"
+spawn_teleport.display_name = "§bTeleport to Spawn"
+
+def on_teleport(p: Player, slot: int):
+    p.perform_command("spawn")
+    form.close(p)
+
+form.set_slot(4, spawn_teleport, on_teleport)
+```
+
 ---
 
 ## 5. Mirroring Containers (Ender Chests & Inventories)
 
 You can use the API to let players view and interact with real container inventories, such as their **Ender Chest**. Since the chest is virtual, you must handle slot click/take/deposit actions inside the callback and sync the changes back to the actual container.
 
-Here is a full example showing how to mirror a player's **Ender Chest** into a virtual chest GUI:
-
+### C++
 ```cpp
 #include "chest_form_api/chest_form.h"
 #include "chest_form_api/chest_form_manager.h"
@@ -107,16 +177,10 @@ Here is a full example showing how to mirror a player's **Ender Chest** into a v
 #include <endstone/inventory/item_stack.h>
 
 void openEnderChestMirror(endstone::Plugin& plugin, endstone::Player& player) {
-    // Ender Chests have 27 slots
     auto form = std::make_shared<ChestForm>(plugin, "§5Your Ender Chest", ChestSize::Single);
-    
-    // Reference the player's actual ender chest inventory
-    // Note: Assuming Endstone provides access to the player's Ender Chest inventory.
-    // If Ender Chest is not directly exposed as an Endstone inventory type yet, 
-    // you can use the player's main inventory, or manage a virtual custom container map.
     auto& ender_chest = player.getInventory(); // Example: Using main inventory for demonstration
 
-    // 1. Populate the virtual ChestForm slots from the real container
+    // Populate the virtual ChestForm slots from the real container
     for (int i = 0; i < 27; ++i) {
         auto* item = ender_chest.getItem(i);
         if (item && item->getType().getId() != "minecraft:air") {
@@ -124,25 +188,14 @@ void openEnderChestMirror(endstone::Plugin& plugin, endstone::Player& player) {
             form_item.type_id = item->getType().getId();
             form_item.amount = item->getAmount();
             form_item.aux = item->getData();
-            // Optional: copy display name/lore if available in Endstone API
             
-            // Set the slot and define click handler
             form->setSlot(i, form_item, [form, &ender_chest](endstone::Player& p, int clicked_slot) {
-                // Get the clicked item in the real inventory
                 auto* real_item = ender_chest.getItem(clicked_slot);
                 if (real_item) {
                     p.sendMessage("§d[Ender Chest] You clicked item: " + real_item->getType().getId());
-                    
-                    // Example: Transfer the item to the player's active cursor/main inventory
                     p.getInventory().addItem(*real_item);
-                    
-                    // Remove from the Ender Chest
                     ender_chest.clear(clicked_slot);
-                    
-                    // Remove from our virtual form layout
                     form->clearSlot(clicked_slot);
-                    
-                    // Push the updated container state to the player's client GUI
                     form->update(p);
                 }
             });
@@ -155,12 +208,51 @@ void openEnderChestMirror(endstone::Plugin& plugin, endstone::Player& player) {
 }
 ```
 
+### Python
+```python
+from endstone.player import Player
+from endstone.plugin import Plugin
+from endstone.inventory import ItemStack
+from endstone_chest_form import ChestForm, FormItem, ChestSize
+
+def open_ender_chest_mirror(plugin: Plugin, player: Player):
+    form = ChestForm(plugin, "§5Your Ender Chest", ChestSize.SINGLE)
+    ender_chest = player.inventory # Example: Using main inventory for demonstration
+
+    for i in range(27):
+        item = ender_chest.get_item(i)
+        if item and item.type.id != "minecraft:air":
+            form_item = FormItem()
+            form_item.type_id = item.type.id
+            form_item.amount = item.amount
+            form_item.aux = item.data
+
+            # Capture references using defaults in lambda or local functions
+            def make_callback(slot_index):
+                def callback(p: Player, slot: int):
+                    real_item = ender_chest.get_item(slot_index)
+                    if real_item:
+                        p.send_message(f"§d[Ender Chest] You clicked: {real_item.type.id}")
+                        p.inventory.add_item(real_item)
+                        ender_chest.clear(slot_index)
+                        form.clear_slot(slot_index)
+                        form.update(p)
+                return callback
+
+            form.set_slot(i, form_item, make_callback(i))
+        else:
+            form.clear_slot(i)
+
+    form.send_to(player)
+```
+
 ---
 
 ## 6. Creating Dynamic Multi-Page Menus
 
 You can implement paging by clearing slots and repopulating them inside page-button callbacks, then calling `update`.
 
+### C++
 ```cpp
 void openPaginatedMenu(endstone::Plugin& plugin, endstone::Player& player, int page) {
     auto form = std::make_shared<ChestForm>(plugin, "Menu - Page " + std::to_string(page), ChestSize::Double);
@@ -190,7 +282,6 @@ void openPaginatedMenu(endstone::Plugin& plugin, endstone::Player& player, int p
         openPaginatedMenu(plugin, p, page + 1);
     });
 
-    // Populate Page-Specific Content
     if (page == 1) {
         FormItem item1;
         item1.type_id = "minecraft:diamond";
@@ -205,4 +296,45 @@ void openPaginatedMenu(endstone::Plugin& plugin, endstone::Player& player, int p
 
     form->sendTo(player);
 }
+```
+
+### Python
+```python
+def open_paginated_menu(plugin: Plugin, player: Player, page: int):
+    form = ChestForm(plugin, f"Menu - Page {page}", ChestSize.DOUBLE)
+
+    # Border Fillers
+    glass = FormItem()
+    glass.type_id = "minecraft:stained_glass_pane"
+    glass.aux = 15
+    glass.display_name = " "
+    for i in range(9):
+        form.set_slot(i, glass)
+    for i in range(45, 54):
+        form.set_slot(i, glass)
+
+    # Page Navigation Buttons
+    if page > 1:
+        prev_btn = FormItem()
+        prev_btn.type_id = "minecraft:arrow"
+        prev_btn.display_name = "§e<- Previous Page"
+        form.set_slot(45, prev_btn, lambda p, slot: open_paginated_menu(plugin, p, page - 1))
+
+    next_btn = FormItem()
+    next_btn.type_id = "minecraft:arrow"
+    next_btn.display_name = "§eNext Page ->"
+    form.set_slot(53, next_btn, lambda p, slot: open_paginated_menu(plugin, p, page + 1))
+
+    if page == 1:
+        item1 = FormItem()
+        item1.type_id = "minecraft:diamond"
+        item1.display_name = "§bDiamond Page 1"
+        form.set_slot(22, item1)
+    elif page == 2:
+        item2 = FormItem()
+        item2.type_id = "minecraft:emerald"
+        item2.display_name = "§aEmerald Page 2"
+        form.set_slot(22, item2)
+
+    form.send_to(player)
 ```
