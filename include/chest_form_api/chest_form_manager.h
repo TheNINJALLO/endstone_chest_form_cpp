@@ -47,6 +47,7 @@ public:
 
     // Queries to resolve items
     [[nodiscard]] std::int16_t getItemId(const std::string& name) const;
+    [[nodiscard]] std::int16_t getItemIdWithoutFallback(const std::string& name) const;
     [[nodiscard]] std::uint32_t getChestRuntimeId() const { return chest_runtime_id_; }
     [[nodiscard]] std::uint32_t getAirRuntimeId() const { return air_runtime_id_; }
 

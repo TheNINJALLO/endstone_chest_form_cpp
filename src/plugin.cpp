@@ -1,5 +1,6 @@
 #include "chest_form_api/chest_form.h"
 #include "chest_form_api/chest_form_manager.h"
+#include "bindings.h"
 #include <endstone/plugin/plugin.h>
 #include <endstone/event/server/packet_send_event.h>
 #include <endstone/event/server/packet_receive_event.h>
@@ -50,6 +51,7 @@ public:
         registerEvent(&ChestFormListener::onPlayerQuit, *listener_);
 
         ChestFormManager::getInstance().init(*this);
+        register_python_bindings(*this);
         getLogger().info("ChestFormPlugin (C++) enabled!");
     }
 
@@ -369,7 +371,7 @@ private:
     std::unordered_map<std::string, std::vector<FormItem>> virtual_ender_chests_;
 };
 
-ENDSTONE_PLUGIN("chestform_api", "1.0.14", ChestFormPlugin) {
+ENDSTONE_PLUGIN("chestform_api", "1.0.15", ChestFormPlugin) {
     prefix = "ChestFormPlugin";
     description = "Native C++ ChestFormAPI for fake chest inventory forms";
     website = "https://github.com/GlacieTeam/ChestFormAPI";
