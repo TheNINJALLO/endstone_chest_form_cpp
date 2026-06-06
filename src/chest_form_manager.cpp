@@ -218,15 +218,23 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
     session.chest_x = static_cast<int>(std::floor(location.getX()));
 
     // Dynamically calculate target Y coordinate to avoid out-of-bounds while preventing player collision
-    // Place the chest directly below the player's feet to guarantee the block directly above it (where the player stands) is non-solid/air.
-    int target_y = static_cast<int>(std::floor(location.getY())) - 1;
+    int target_y = static_cast<int>(std::floor(location.getY())) + 4;
     auto dim_name = dimension.getName();
     int min_y = -64;
-    if (dim_name == "Nether" || dim_name == "The End") {
+    int max_y = 319;
+    if (dim_name == "Nether") {
         min_y = 0;
+        max_y = 127;
+    } else if (dim_name == "The End") {
+        min_y = 0;
+        max_y = 255;
     }
-    if (target_y < min_y) {
-        target_y = min_y;
+
+    if (target_y > max_y) {
+        target_y = static_cast<int>(std::floor(location.getY())) - 3;
+        if (target_y < min_y) {
+            target_y = static_cast<int>(std::floor(location.getY()));
+        }
     }
     session.chest_y = target_y;
     session.chest_z = static_cast<int>(std::floor(location.getZ()));
@@ -376,7 +384,7 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
                 }
             }
             sendPacketHelper(*current_player, content);
-        }, 3);
+        }, 10);
     }
 }
 
