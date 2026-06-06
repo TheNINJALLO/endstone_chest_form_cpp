@@ -265,7 +265,7 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
                                   " (Window ID: " + std::to_string(session.window_id) + ")");
     }
 
-    // 1. Place fake block(s)
+    // Place fake chest block(s)
     sculk::protocol::UpdateBlockPacket update1;
     update1.mBlockPosition = {session.chest_x, session.chest_y, session.chest_z};
     update1.mRuntimeId = chest_runtime_id_;
@@ -282,7 +282,7 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
         sendPacketHelper(player, update2);
     }
 
-    // 2. Set Block Entities (title and double chest pairing)
+    // Initialize block actor data for titles/double-chest setup
     sculk::protocol::BlockActorDataPacket actor1;
     actor1.mBlockPosition = {session.chest_x, session.chest_y, session.chest_z};
 
@@ -347,7 +347,7 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
         sendPacketHelper(player, actor2);
     }
 
-    // 3. Open Container UI (delayed by 10 ticks to allow client construction of block actor)
+    // Send open container packet after a small delay to let client construct the block actor first
     if (plugin_) {
         auto player_uuid = player.getUniqueId();
         plugin_->getServer().getScheduler().runTaskLater(*plugin_, [this, player_uuid, uuid, window_id = session.window_id, chest_x = session.chest_x, chest_y = session.chest_y, chest_z = session.chest_z, size = session.size]() {
@@ -366,7 +366,7 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
             open.mTargetActorId = -1;
             sendPacketHelper(*current_player, open);
 
-            // 4. Fill Slots
+            // Populate container slots
             sculk::protocol::InventoryContentPacket content;
             content.mInventoryId = window_id;
             int total_slots = static_cast<int>(size);

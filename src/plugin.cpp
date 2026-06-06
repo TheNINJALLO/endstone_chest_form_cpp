@@ -69,13 +69,11 @@ public:
 
 private:
     void setupAndSendTestForm(endstone::Player& player) {
-        // Create a 54-slot chest form
         ChestForm form(*this, "Test Chest Form", ChestSize::Double);
 
-        // Fill borders with glass panes
         FormItem filler;
         filler.type_id = "minecraft:stained_glass_pane";
-        filler.aux = 15; // Black colored pane
+        filler.aux = 15;
         filler.display_name = " ";
 
         for (int i = 0; i < 54; ++i) {
@@ -85,7 +83,6 @@ private:
             }
         }
 
-        // Slot 13: Give Kit
         FormItem give_kit;
         give_kit.type_id = "minecraft:diamond_block";
         give_kit.display_name = "§aGive Kit";
@@ -94,20 +91,17 @@ private:
             p.sendMessage("§a[ChestForm] You received the builder kit!");
         });
 
-        // Slot 22: Reopen
         FormItem reopen;
         reopen.type_id = "minecraft:emerald";
         reopen.display_name = "§eReopen";
         reopen.lore = {"§7Click to reopen the form!"};
         form.setSlot(22, reopen, [this](endstone::Player& p, int slot) {
             p.sendMessage("§e[ChestForm] Reopening form in 1 tick...");
-            // Reopen form in the next server tick to let the current inventory action settle
             getServer().getScheduler().runTaskLater(*this, [this, &p]() {
                 setupAndSendTestForm(p);
             }, 1);
         });
 
-        // Slot 31: Close
         FormItem close;
         close.type_id = "minecraft:barrier";
         close.display_name = "§cClose";
