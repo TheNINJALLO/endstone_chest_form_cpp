@@ -20,10 +20,10 @@ class ChestFormListener {
 public:
     void onPacketSend(endstone::PacketSendEvent& event) {
         int packet_id = event.getPacketId();
-        if (packet_id == 137 || packet_id == 162) { // ItemRegistryPacket variants
-            ChestFormManager::getInstance().handlePacketSend(nullptr, packet_id, event.getPayload());
-        } else if (event.getPlayer()) {
+        if (event.getPlayer()) {
             ChestFormManager::getInstance().handlePacketSend(event.getPlayer(), packet_id, event.getPayload());
+        } else {
+            ChestFormManager::getInstance().handlePacketSend(nullptr, packet_id, event.getPayload());
         }
     }
 
@@ -377,7 +377,7 @@ private:
     std::unordered_map<std::string, std::vector<FormItem>> virtual_ender_chests_;
 };
 
-ENDSTONE_PLUGIN("chestform_api", "1.0.10", ChestFormPlugin) {
+ENDSTONE_PLUGIN("chestform_api", "1.0.11", ChestFormPlugin) {
     prefix = "ChestFormPlugin";
     description = "Native C++ ChestFormAPI for fake chest inventory forms";
     website = "https://github.com/GlacieTeam/ChestFormAPI";

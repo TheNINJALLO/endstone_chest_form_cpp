@@ -217,15 +217,24 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
     auto& dimension = player.getDimension();
     session.chest_x = static_cast<int>(std::floor(location.getX()));
 
-    // Place the chest directly below the player's feet to guarantee the block is within reach.
-    int target_y = static_cast<int>(std::floor(location.getY())) - 1;
+    // Dynamically calculate target Y coordinate to avoid out-of-bounds while preventing player collision
+    int target_y = static_cast<int>(std::floor(location.getY())) + 4;
     auto dim_name = dimension.getName();
     int min_y = -64;
-    if (dim_name == "Nether" || dim_name == "The End") {
+    int max_y = 319;
+    if (dim_name == "Nether") {
         min_y = 0;
+        max_y = 127;
+    } else if (dim_name == "The End") {
+        min_y = 0;
+        max_y = 255;
     }
-    if (target_y < min_y) {
-        target_y = min_y;
+
+    if (target_y > max_y) {
+        target_y = static_cast<int>(std::floor(location.getY())) - 3;
+        if (target_y < min_y) {
+            target_y = static_cast<int>(std::floor(location.getY()));
+        }
     }
     session.chest_y = target_y;
     session.chest_z = static_cast<int>(std::floor(location.getZ()));
@@ -689,25 +698,6 @@ std::int16_t ChestFormManager::getItemId(const std::string& name) const {
     if (it != item_name_to_id_.end()) {
         return it->second;
     }
-
-    static const std::unordered_map<std::string, std::int16_t> fallback_ids = {
-        {"minecraft:stained_glass_pane", 160},
-        {"minecraft:black_stained_glass_pane", 160},
-        {"minecraft:light_gray_stained_glass_pane", 160},
-        {"minecraft:diamond_block", 57},
-        {"minecraft:emerald", 388},
-        {"minecraft:barrier", 416},
-        {"minecraft:stone", 1},
-        {"minecraft:diamond", 264},
-        {"minecraft:gold_ingot", 266},
-        {"minecraft:iron_ingot", 265},
-        {"minecraft:chest", 54}
-    };
-    auto fallback_it = fallback_ids.find(name);
-    if (fallback_it != fallback_ids.end()) {
-        return fallback_it->second;
-    }
-
     // Attempt parsing raw numerical value from string if name is digits
     try {
         return static_cast<std::int16_t>(std::stoi(name));
