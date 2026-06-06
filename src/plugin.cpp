@@ -114,8 +114,8 @@ private:
         ChestForm form(*this, "Test Chest Form", ChestSize::Double);
 
         FormItem filler;
-        filler.type_id = "minecraft:stained_glass_pane";
-        filler.aux = 15;
+        filler.type_id = "minecraft:black_stained_glass_pane";
+        filler.aux = 0;
         filler.display_name = " ";
 
         for (int i = 0; i < 54; ++i) {
@@ -162,8 +162,8 @@ private:
         auto& target_inv = target.getInventory();
 
         FormItem filler;
-        filler.type_id = "minecraft:stained_glass_pane";
-        filler.aux = 15;
+        filler.type_id = "minecraft:black_stained_glass_pane";
+        filler.aux = 0;
         filler.display_name = " ";
 
         for (int i = 36; i <= 44; ++i) {
@@ -191,8 +191,8 @@ private:
                 });
             } else {
                 FormItem placeholder;
-                placeholder.type_id = "minecraft:stained_glass_pane";
-                placeholder.aux = 8;
+                placeholder.type_id = "minecraft:light_gray_stained_glass_pane";
+                placeholder.aux = 0;
                 placeholder.display_name = placeholder_name;
                 form->setSlot(virtual_slot, placeholder);
             }
@@ -294,8 +294,8 @@ private:
         form->setSlot(4, preview_item);
 
         FormItem glass;
-        glass.type_id = "minecraft:stained_glass_pane";
-        glass.aux = 15;
+        glass.type_id = "minecraft:black_stained_glass_pane";
+        glass.aux = 0;
         glass.display_name = " ";
         for (int i = 0; i < 27; ++i) {
             if (i != 4 && i != 11 && i != 13 && i != 15) {

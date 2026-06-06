@@ -263,8 +263,8 @@ void openPaginatedMenu(endstone::Plugin& plugin, endstone::Player& player, int p
 
     // Border Fillers
     FormItem glass;
-    glass.type_id = "minecraft:stained_glass_pane";
-    glass.aux = 15;
+    glass.type_id = "minecraft:black_stained_glass_pane";
+    glass.aux = 0;
     glass.display_name = " ";
     for (int i = 0; i < 9; ++i) form->setSlot(i, glass);
     for (int i = 45; i < 54; ++i) form->setSlot(i, glass);
@@ -309,8 +309,8 @@ def open_paginated_menu(plugin: Plugin, player: Player, page: int):
 
     # Border Fillers
     glass = FormItem()
-    glass.type_id = "minecraft:stained_glass_pane"
-    glass.aux = 15
+    glass.type_id = "minecraft:black_stained_glass_pane"
+    glass.aux = 0
     glass.display_name = " "
     for i in range(9):
         form.set_slot(i, glass)
