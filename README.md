@@ -43,7 +43,7 @@ The plugin includes built-in commands for operators/admins to inspect and modera
 *   **`/chestendersee <player: str>`** — Opens a 27-slot chest interface displaying the target player's virtual ender chest contents.
 
 ### Step-by-Step Moderation Flow
-1.  **Open Inspector**: Run `/chestinvsee <player: str>` or `/chestendersee <player: str>` to view their items. Non-item slots and borders are filled with **Deny blocks (`minecraft:deny`)** to cleanly represent locked/disabled slots (similar to the auto crafter's locked slots).
+1.  **Open Inspector**: Run `/chestinvsee <player: str>` or `/chestendersee <player: str>` to view their items. All non-item background and border slots are left completely empty (clear) for a clean, minimal UI.
 2.  **Select Item**: Click on the specific item stack you want to manage.
 3.  **Perform Action**: Clicking the item opens a **Management Submenu** for that slot index, displaying:
     *   **Clone**: Click the **Emerald** (`§aClone Item`) to copy the item stack directly to your own inventory.

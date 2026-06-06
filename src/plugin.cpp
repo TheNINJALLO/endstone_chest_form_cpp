@@ -113,20 +113,34 @@ public:
     }
 
 private:
-    void setupAndSendTestForm(endstone::Player& player) {
-        ChestForm form(*this, "Test Chest Form", ChestSize::Double);
-
-        FormItem filler;
-        filler.type_id = "minecraft:deny";
-        filler.aux = 0;
-        filler.display_name = " ";
-
-        for (int i = 0; i < 54; ++i) {
-            bool is_border = (i < 9) || (i >= 45) || (i % 9 == 0) || (i % 9 == 8);
-            if (is_border) {
-                form.setSlot(i, filler);
+    FormItem createFormItem(const endstone::ItemStack& item) {
+        FormItem f_item;
+        f_item.type_id = item.getType().getId();
+        f_item.amount = item.getAmount();
+        f_item.aux = item.getData();
+        if (item.hasItemMeta()) {
+            auto meta = item.getItemMeta();
+            if (meta) {
+                if (meta->hasDisplayName()) {
+                    f_item.display_name = meta->getDisplayName();
+                }
+                if (meta->hasLore()) {
+                    f_item.lore = meta->getLore();
+                }
+                if (meta->hasEnchants()) {
+                    for (const auto& [enchant_ptr, lvl] : meta->getEnchants()) {
+                        if (enchant_ptr) {
+                            f_item.enchants[std::string(enchant_ptr->getId())] = lvl;
+                        }
+                    }
+                }
             }
         }
+        return f_item;
+    }
+
+    void setupAndSendTestForm(endstone::Player& player) {
+        ChestForm form(*this, "Test Chest Form", ChestSize::Double);
 
         FormItem give_kit;
         give_kit.type_id = "minecraft:chest";
@@ -144,8 +158,8 @@ private:
         reopen.lore = {"§7Click to reopen the form!"};
         form.setSlot(22, reopen, [this](endstone::Player& p, int slot) {
             p.sendMessage("§e[ChestForm] Reopening form in 1 tick...");
-            getServer().getScheduler().runTaskLater(*this, [this, &p]() {
-                setupAndSendTestForm(p);
+            getServer().getScheduler().runTaskLater(*this, [this, p_ptr = &p]() {
+                setupAndSendTestForm(*p_ptr);
             }, 1);
         });
 
@@ -163,43 +177,23 @@ private:
     void openInventorySeeForm(endstone::Player& admin, endstone::Player& target) {
         auto form = std::make_shared<ChestForm>(*this, "Inv: " + target.getName(), ChestSize::Double);
         auto& target_inv = target.getInventory();
-
-        FormItem filler;
-        filler.type_id = "minecraft:deny";
-        filler.aux = 0;
-        filler.display_name = " ";
-
-        for (int i = 36; i <= 44; ++i) {
-            form->setSlot(i, filler);
-        }
-        form->setSlot(0, filler);
-        for (int i = 5; i <= 8; ++i) {
-            form->setSlot(i, filler);
-        }
+        auto target_ptr = &target;
 
         auto helmet = target_inv.getHelmet();
         auto chestplate = target_inv.getChestplate();
         auto leggings = target_inv.getLeggings();
         auto boots = target_inv.getBoots();
 
-        auto addArmorSlot = [this, form, &target](int virtual_slot, std::optional<endstone::ItemStack> item, int target_slot, std::string placeholder_name) {
+        auto addArmorSlot = [this, form, target_ptr](int virtual_slot, std::optional<endstone::ItemStack> item, int target_slot, std::string placeholder_name) {
             if (item && item->getType().getId() != "minecraft:air") {
-                FormItem f_item;
-                f_item.type_id = item->getType().getId();
-                f_item.amount = item->getAmount();
-                f_item.aux = item->getData();
-                f_item.display_name = "§f" + f_item.type_id;
-                form->setSlot(virtual_slot, f_item, [this, &target, target_slot](endstone::Player& p, int slot) {
-                    getServer().getScheduler().runTaskLater(*this, [this, &p, &target, target_slot]() {
-                        openManagementMenu(p, target, target_slot, false);
+                FormItem f_item = createFormItem(*item);
+                form->setSlot(virtual_slot, f_item, [this, target_ptr, target_slot](endstone::Player& p, int slot) {
+                    getServer().getScheduler().runTaskLater(*this, [this, p_ptr = &p, target_ptr, target_slot]() {
+                        openManagementMenu(*p_ptr, *target_ptr, target_slot, false);
                     }, 1);
                 });
             } else {
-                FormItem placeholder;
-                placeholder.type_id = "minecraft:light_gray_stained_glass_pane";
-                placeholder.aux = 8;
-                placeholder.display_name = placeholder_name;
-                form->setSlot(virtual_slot, placeholder);
+                form->clearSlot(virtual_slot);
             }
         };
 
@@ -211,13 +205,10 @@ private:
         for (int i = 9; i <= 35; ++i) {
             auto item = target_inv.getItem(i);
             if (item && item->getType().getId() != "minecraft:air") {
-                FormItem f_item;
-                f_item.type_id = item->getType().getId();
-                f_item.amount = item->getAmount();
-                f_item.aux = item->getData();
-                form->setSlot(i, f_item, [this, &target, i](endstone::Player& p, int slot) {
-                    getServer().getScheduler().runTaskLater(*this, [this, &p, &target, i]() {
-                        openManagementMenu(p, target, i, false);
+                FormItem f_item = createFormItem(*item);
+                form->setSlot(i, f_item, [this, target_ptr, i](endstone::Player& p, int slot) {
+                    getServer().getScheduler().runTaskLater(*this, [this, p_ptr = &p, target_ptr, i]() {
+                        openManagementMenu(*p_ptr, *target_ptr, i, false);
                     }, 1);
                 });
             } else {
@@ -229,13 +220,10 @@ private:
             auto item = target_inv.getItem(i);
             int virtual_slot = 45 + i;
             if (item && item->getType().getId() != "minecraft:air") {
-                FormItem f_item;
-                f_item.type_id = item->getType().getId();
-                f_item.amount = item->getAmount();
-                f_item.aux = item->getData();
-                form->setSlot(virtual_slot, f_item, [this, &target, i](endstone::Player& p, int slot) {
-                    getServer().getScheduler().runTaskLater(*this, [this, &p, &target, i]() {
-                        openManagementMenu(p, target, i, false);
+                FormItem f_item = createFormItem(*item);
+                form->setSlot(virtual_slot, f_item, [this, target_ptr, i](endstone::Player& p, int slot) {
+                    getServer().getScheduler().runTaskLater(*this, [this, p_ptr = &p, target_ptr, i]() {
+                        openManagementMenu(*p_ptr, *target_ptr, i, false);
                     }, 1);
                 });
             } else {
@@ -249,13 +237,14 @@ private:
     void openEnderSeeForm(endstone::Player& admin, endstone::Player& target) {
         auto form = std::make_shared<ChestForm>(*this, "Ender: " + target.getName(), ChestSize::Single);
         auto& ender_chest = getOrCreateVirtualEnderChest(target.getUniqueId().str());
+        auto target_ptr = &target;
 
         for (int i = 0; i < 27; ++i) {
             auto& item = ender_chest[i];
             if (!item.type_id.empty() && item.type_id != "minecraft:air") {
-                form->setSlot(i, item, [this, &target, i](endstone::Player& p, int slot) {
-                    getServer().getScheduler().runTaskLater(*this, [this, &p, &target, i]() {
-                        openManagementMenu(p, target, i, true);
+                form->setSlot(i, item, [this, target_ptr, i](endstone::Player& p, int slot) {
+                    getServer().getScheduler().runTaskLater(*this, [this, p_ptr = &p, target_ptr, i]() {
+                        openManagementMenu(*p_ptr, *target_ptr, i, true);
                     }, 1);
                 });
             } else {
@@ -268,6 +257,7 @@ private:
 
     void openManagementMenu(endstone::Player& admin, endstone::Player& target, int target_slot, bool is_ender) {
         auto form = std::make_shared<ChestForm>(*this, "Manage Slot " + std::to_string(target_slot), ChestSize::Single);
+        auto target_ptr = &target;
 
         FormItem preview_item;
         bool has_item = false;
@@ -288,9 +278,7 @@ private:
             else target_item = target_inv.getItem(target_slot);
 
             if (target_item && target_item->getType().getId() != "minecraft:air") {
-                preview_item.type_id = target_item->getType().getId();
-                preview_item.amount = target_item->getAmount();
-                preview_item.aux = target_item->getData();
+                preview_item = createFormItem(*target_item);
                 has_item = true;
             }
         }
@@ -304,26 +292,16 @@ private:
 
         form->setSlot(4, preview_item);
 
-        FormItem glass;
-        glass.type_id = "minecraft:deny";
-        glass.aux = 0;
-        glass.display_name = " ";
-        for (int i = 0; i < 27; ++i) {
-            if (i != 4 && i != 11 && i != 13 && i != 15) {
-                form->setSlot(i, glass);
-            }
-        }
-
         FormItem clone_btn;
         clone_btn.type_id = "minecraft:emerald";
         clone_btn.display_name = "§aClone Item";
         clone_btn.lore = {"§7Click to copy this item stack", "§7to your own inventory."};
-        form->setSlot(11, clone_btn, [this, &target, preview_item, target_slot, is_ender](endstone::Player& p, int slot) {
+        form->setSlot(11, clone_btn, [this, target_ptr, preview_item, target_slot, is_ender](endstone::Player& p, int slot) {
             p.getInventory().addItem(endstone::ItemStack(preview_item.type_id, preview_item.amount, preview_item.aux));
             p.sendMessage("§a[ChestForm] Cloned item to your inventory.");
-            getServer().getScheduler().runTaskLater(*this, [this, &p, &target, is_ender]() {
-                if (is_ender) openEnderSeeForm(p, target);
-                else openInventorySeeForm(p, target);
+            getServer().getScheduler().runTaskLater(*this, [this, p_ptr = &p, target_ptr, is_ender]() {
+                if (is_ender) openEnderSeeForm(*p_ptr, *target_ptr);
+                else openInventorySeeForm(*p_ptr, *target_ptr);
             }, 1);
         });
 
@@ -331,14 +309,14 @@ private:
         delete_btn.type_id = "minecraft:redstone_block";
         delete_btn.display_name = "§cDelete Item";
         delete_btn.lore = {"§7Click to clear this item", "§7from the player's inventory."};
-        form->setSlot(13, delete_btn, [this, &target, target_slot, is_ender](endstone::Player& p, int slot) {
+        form->setSlot(13, delete_btn, [this, target_ptr, target_slot, is_ender](endstone::Player& p, int slot) {
             if (is_ender) {
-                auto& chest = getOrCreateVirtualEnderChest(target.getUniqueId().str());
+                auto& chest = getOrCreateVirtualEnderChest(target_ptr->getUniqueId().str());
                 if (target_slot >= 0 && target_slot < 27) {
                     chest[target_slot] = FormItem{};
                 }
             } else {
-                auto& target_inv = target.getInventory();
+                auto& target_inv = target_ptr->getInventory();
                 if (target_slot == 36) target_inv.setHelmet(std::nullopt);
                 else if (target_slot == 37) target_inv.setChestplate(std::nullopt);
                 else if (target_slot == 38) target_inv.setLeggings(std::nullopt);
@@ -346,9 +324,9 @@ private:
                 else target_inv.setItem(target_slot, std::nullopt);
             }
             p.sendMessage("§a[ChestForm] Deleted item from slot.");
-            getServer().getScheduler().runTaskLater(*this, [this, &p, &target, is_ender]() {
-                if (is_ender) openEnderSeeForm(p, target);
-                else openInventorySeeForm(p, target);
+            getServer().getScheduler().runTaskLater(*this, [this, p_ptr = &p, target_ptr, is_ender]() {
+                if (is_ender) openEnderSeeForm(*p_ptr, *target_ptr);
+                else openInventorySeeForm(*p_ptr, *target_ptr);
             }, 1);
         });
 
@@ -356,10 +334,10 @@ private:
         back_btn.type_id = "minecraft:arrow";
         back_btn.display_name = "§eGo Back";
         back_btn.lore = {"§7Return to the inventory view."};
-        form->setSlot(15, back_btn, [this, &target, is_ender](endstone::Player& p, int slot) {
-            getServer().getScheduler().runTaskLater(*this, [this, &p, &target, is_ender]() {
-                if (is_ender) openEnderSeeForm(p, target);
-                else openInventorySeeForm(p, target);
+        form->setSlot(15, back_btn, [this, target_ptr, is_ender](endstone::Player& p, int slot) {
+            getServer().getScheduler().runTaskLater(*this, [this, p_ptr = &p, target_ptr, is_ender]() {
+                if (is_ender) openEnderSeeForm(*p_ptr, *target_ptr);
+                else openInventorySeeForm(*p_ptr, *target_ptr);
             }, 1);
         });
 
@@ -391,7 +369,7 @@ private:
     std::unordered_map<std::string, std::vector<FormItem>> virtual_ender_chests_;
 };
 
-ENDSTONE_PLUGIN("chestform_api", "1.0.13", ChestFormPlugin) {
+ENDSTONE_PLUGIN("chestform_api", "1.0.14", ChestFormPlugin) {
     prefix = "ChestFormPlugin";
     description = "Native C++ ChestFormAPI for fake chest inventory forms";
     website = "https://github.com/GlacieTeam/ChestFormAPI";
