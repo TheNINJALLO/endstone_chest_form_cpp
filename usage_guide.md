@@ -337,4 +337,99 @@ def open_paginated_menu(plugin: Plugin, player: Player, page: int):
         form.set_slot(22, item2)
 
     form.send_to(player)
+
+---
+
+## 7. Advanced: Clone & Delete in Container Mirroring
+
+When viewing player inventories or Ender Chests, you can set up options to copy (clone) item stacks or delete them from the container by opening a sub-menu when clicking on a slot.
+
+### C++
+```cpp
+void openManagementMenu(endstone::Plugin& plugin, endstone::Player& admin, endstone::Player& target, int target_slot) {
+    auto form = std::make_shared<ChestForm>(plugin, "Manage Slot " + std::to_string(target_slot), ChestSize::Single);
+
+    auto& target_inv = target.getInventory();
+    auto target_item = target_inv.getItem(target_slot);
+    if (!target_item || target_item->getType().getId() == "minecraft:air") {
+        admin.sendMessage("§cThat slot is empty!");
+        return;
+    }
+
+    // Preview slot item (Slot 4)
+    FormItem preview;
+    preview.type_id = target_item->getType().getId();
+    preview.amount = target_item->getAmount();
+    preview.aux = target_item->getData();
+    form->setSlot(4, preview);
+
+    // Clone button (Slot 11)
+    FormItem clone_btn;
+    clone_btn.type_id = "minecraft:emerald";
+    clone_btn.display_name = "§aClone Item";
+    clone_btn.lore = {"§7Copy item stack to your inventory"};
+    form->setSlot(11, clone_btn, [preview](endstone::Player& p, int slot) {
+        p.getInventory().addItem(endstone::ItemStack(preview.type_id, preview.amount, preview.aux));
+        p.sendMessage("§a[ChestForm] Cloned item.");
+    });
+
+    // Delete button (Slot 13)
+    FormItem delete_btn;
+    delete_btn.type_id = "minecraft:redstone_block";
+    delete_btn.display_name = "§cDelete Item";
+    delete_btn.lore = {"§7Remove item from player's inventory"};
+    form->setSlot(13, delete_btn, [&target_inv, target_slot](endstone::Player& p, int slot) {
+        target_inv.setItem(target_slot, std::nullopt);
+        p.sendMessage("§a[ChestForm] Deleted item.");
+    });
+
+    form->sendTo(admin);
+}
+```
+
+### Python
+```python
+def open_management_menu(plugin: Plugin, admin: Player, target: Player, target_slot: int):
+    form = ChestForm(plugin, f"Manage Slot {target_slot}", ChestSize.SINGLE)
+
+    target_inv = target.inventory
+    target_item = target_inv.get_item(target_slot)
+    if not target_item or target_item.type.id == "minecraft:air":
+        admin.send_message("§cThat slot is empty!")
+        return
+
+    # Preview slot item (Slot 4)
+    preview = FormItem()
+    preview.type_id = target_item.type.id
+    preview.amount = target_item.amount
+    preview.aux = target_item.data
+    form.set_slot(4, preview)
+
+    # Clone button (Slot 11)
+    clone_btn = FormItem()
+    clone_btn.type_id = "minecraft:emerald"
+    clone_btn.display_name = "§aClone Item"
+    clone_btn.lore = ["§7Copy item stack to your inventory"]
+    
+    def on_clone(p: Player, slot: int):
+        p.inventory.add_item(ItemStack(preview.type_id, preview.amount, preview.aux))
+        p.send_message("§a[ChestForm] Cloned item.")
+        
+    form.set_slot(11, clone_btn, on_clone)
+
+    # Delete button (Slot 13)
+    delete_btn = FormItem()
+    delete_btn.type_id = "minecraft:redstone_block"
+    delete_btn.display_name = "§cDelete Item"
+    delete_btn.lore = ["§7Remove item from player's inventory"]
+    
+    def on_delete(p: Player, slot: int):
+        target_inv.clear(target_slot) # Or set_item(target_slot, None)
+        p.send_message("§a[ChestForm] Deleted item.")
+        
+    form.set_slot(13, delete_btn, on_delete)
+
+    form.send_to(admin)
+```
+
 ```
