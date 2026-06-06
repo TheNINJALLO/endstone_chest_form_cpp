@@ -302,7 +302,11 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
         if (slot_it != session.slots.end()) {
             items1.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
         } else {
-            items1.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
+            FormItem filler;
+            filler.type_id = "ninjos:disabledslot";
+            filler.amount = 1;
+            filler.display_name = " ";
+            items1.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(filler, i)});
         }
     }
     compound1.mValue["Items"] = sculk::protocol::TagVariant{items1};
@@ -335,7 +339,11 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
             if (slot_it != session.slots.end()) {
                 items2.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
             } else {
-                items2.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
+                FormItem filler;
+                filler.type_id = "ninjos:disabledslot";
+                filler.amount = 1;
+                filler.display_name = " ";
+                items2.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(filler, i)});
             }
         }
         compound2.mValue["Items"] = sculk::protocol::TagVariant{items2};
@@ -377,9 +385,11 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
                 if (slot_it != it->second.slots.end()) {
                     content.mSlots[i] = serializeFormItem(slot_it->second);
                 } else {
-                    sculk::protocol::NetworkItemStackDescriptor empty_desc;
-                    empty_desc.mId = 0;
-                    content.mSlots[i] = empty_desc;
+                    FormItem filler;
+                    filler.type_id = "ninjos:disabledslot";
+                    filler.amount = 1;
+                    filler.display_name = " ";
+                    content.mSlots[i] = serializeFormItem(filler);
                 }
             }
             sendPacketHelper(*current_player, content);
@@ -469,7 +479,11 @@ void ChestFormManager::updateForm(endstone::Player& player, const ChestForm& for
         if (slot_it != session.slots.end()) {
             items1.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
         } else {
-            items1.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
+            FormItem filler;
+            filler.type_id = "ninjos:disabledslot";
+            filler.amount = 1;
+            filler.display_name = " ";
+            items1.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(filler, i)});
         }
     }
     compound1.mValue["Items"] = sculk::protocol::TagVariant{items1};
@@ -502,7 +516,11 @@ void ChestFormManager::updateForm(endstone::Player& player, const ChestForm& for
             if (slot_it != session.slots.end()) {
                 items2.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
             } else {
-                items2.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
+                FormItem filler;
+                filler.type_id = "ninjos:disabledslot";
+                filler.amount = 1;
+                filler.display_name = " ";
+                items2.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(filler, i)});
             }
         }
         compound2.mValue["Items"] = sculk::protocol::TagVariant{items2};
@@ -524,9 +542,11 @@ void ChestFormManager::updateForm(endstone::Player& player, const ChestForm& for
         if (slot_it != session.slots.end()) {
             content.mSlots[i] = serializeFormItem(slot_it->second);
         } else {
-            sculk::protocol::NetworkItemStackDescriptor empty_desc;
-            empty_desc.mId = 0;
-            content.mSlots[i] = empty_desc;
+            FormItem filler;
+            filler.type_id = "ninjos:disabledslot";
+            filler.amount = 1;
+            filler.display_name = " ";
+            content.mSlots[i] = serializeFormItem(filler);
         }
     }
     sendPacketHelper(player, content);
@@ -654,9 +674,11 @@ bool ChestFormManager::handlePacketReceive(endstone::Player& player, int packet_
                     if (it != session.slots.end()) {
                         content.mSlots[i] = serializeFormItem(it->second);
                     } else {
-                        sculk::protocol::NetworkItemStackDescriptor empty_desc;
-                        empty_desc.mId = 0;
-                        content.mSlots[i] = empty_desc;
+                        FormItem filler;
+                        filler.type_id = "ninjos:disabledslot";
+                        filler.amount = 1;
+                        filler.display_name = " ";
+                        content.mSlots[i] = serializeFormItem(filler);
                     }
                 }
                 sendPacketHelper(player, content);

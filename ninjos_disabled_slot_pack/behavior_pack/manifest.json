@@ -1,0 +1,18 @@
+{
+  "format_version": 2,
+  "header": {
+    "description": "Behavior Pack for Ninjos Disabled Slot",
+    "name": "Ninjos Disabled Slot BP",
+    "uuid": "c18ff248-be22-4467-bc6b-de3a7f804561",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 20, 20]
+  },
+  "modules": [
+    {
+      "description": "Behavior Pack Module",
+      "type": "data",
+      "uuid": "fae8f810-bb2f-4e0d-b8fb-13c545de9943",
+      "version": [1, 0, 0]
+    }
+  ]
+}

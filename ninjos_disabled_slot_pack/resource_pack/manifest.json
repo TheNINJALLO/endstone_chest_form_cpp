@@ -1,0 +1,18 @@
+{
+  "format_version": 2,
+  "header": {
+    "description": "Resource Pack for Ninjos Disabled Slot",
+    "name": "Ninjos Disabled Slot RP",
+    "uuid": "e742afc8-c64d-4952-ba13-fb3d7890cc42",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 20, 20]
+  },
+  "modules": [
+    {
+      "description": "Resource Pack Module",
+      "type": "resources",
+      "uuid": "2a99d21c-a33f-42e1-88f5-467812bc8549",
+      "version": [1, 0, 0]
+    }
+  ]
+}
