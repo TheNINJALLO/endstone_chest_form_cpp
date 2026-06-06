@@ -35,6 +35,7 @@ public:
     void update(endstone::Player& player);
 
     // Getters for manager access
+    [[nodiscard]] endstone::Plugin& getPlugin() const { return plugin_; }
     [[nodiscard]] const std::string& getTitle() const { return title_; }
     [[nodiscard]] ChestSize getSize() const { return size_; }
     [[nodiscard]] const std::unordered_map<int, FormItem>& getItems() const { return items_; }

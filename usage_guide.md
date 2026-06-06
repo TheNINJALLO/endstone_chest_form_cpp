@@ -25,13 +25,15 @@ target_link_libraries(my_plugin PRIVATE chestform_api)
 ```
 
 ### Python Plugins (`pyproject.toml`)
-Add `endstone-chestform-api` to your dependencies. You can install it via PyPI or directly from the GitHub repository:
+To develop Python plugins with `ChestFormAPI`, add this repository under your dependencies in your plugin project's `pyproject.toml` to acquire the type hints and autocompletion stubs:
 ```toml
 dependencies = [
     "endstone>=0.11.0",
-    "endstone-chestform-api"
+    "endstone-chestform-api @ git+https://github.com/TheNINJALLO/endstone_chestform_api.git@master"
 ]
 ```
+> [!IMPORTANT]
+> The C++ backend plugin (`endstone_chestform_api.dll` / `endstone_chestform_api.so`) must still be placed in the server's `plugins/` directory for the runtime bindings to work.
 
 ---
 
@@ -146,8 +148,6 @@ form.setSlot(4, spawn_teleport, [](endstone::Player& p, int slot) {
 
 ### Python
 ```python
-from endstone_chest_form import ChestFormManager
-
 # 1. Close Button
 close_button = FormItem()
 close_button.type_id = "minecraft:barrier"

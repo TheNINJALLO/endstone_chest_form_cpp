@@ -9,9 +9,9 @@
 Before starting, ensure that:
 1. You have an Endstone server running.
 2. The C++ backend plugin (`endstone_chestform_api.so` on Linux or `endstone_chestform_api.dll` on Windows) is placed in the server's `plugins/` folder.
-3. The Python bindings package (`endstone-chestform-api`) is installed in your server's Python environment:
+3. The Python stubs helper library (`endstone-chestform-api`) is installed in your Python environment for development:
    ```bash
-   pip install endstone-chestform-api
+   pip install git+https://github.com/TheNINJALLO/endstone_chestform_api.git@master
    ```
 
 ---
@@ -34,7 +34,7 @@ my_selector_plugin/
 
 ## Step 2: Configure `pyproject.toml`
 
-The `pyproject.toml` file configures the python packaging metadata and declares dependencies. Under `dependencies`, add `endstone` and `endstone_chest_form`:
+The `pyproject.toml` file configures the python packaging metadata and declares dependencies. Under `dependencies`, add `endstone` and `endstone-chestform-api`:
 
 ```toml
 [build-system]
@@ -68,8 +68,8 @@ my_selector_plugin = "my_selector_plugin.plugin:MySelectorPlugin"
 > [!NOTE]
 > **How does `pip` resolve the `endstone-chestform-api` dependency?**
 >
-> * **With Option A (`"endstone-chestform-api>=2.0.0"`)**: `pip` will try to download it from the public PyPI registry. If you haven't published it there, it will fail unless you have manually pre-installed the `.whl` module on the server first using `pip install endstone_chestform_api-2.0.0-*.whl`.
-> * **With Option B (`"endstone-chestform-api @ git+..."`)**: When a user installs your plugin via `pip install my_selector_plugin-1.0.0-py3-none-any.whl`, `pip` will automatically clone the GitHub repository and install it as a dependency automatically!
+> * **With Option A (`"endstone-chestform-api>=2.0.0"`)**: `pip` will try to download it from the public PyPI registry. Note that PyPI hosts a python-only implementation that does not utilize our C++ backend, which might lead to duplicate event registrations or desyncs.
+> * **With Option B (`"endstone-chestform-api @ git+..."`)**: When a user installs your plugin via `pip install my_selector_plugin-1.0.0-py3-none-any.whl`, `pip` will automatically clone this GitHub repository and install it as a dependency, acquiring the correct developer stubs for the C++ backend!
 
 > [!IMPORTANT]
 > The `[project.entry-points."endstone.plugins"]` section tells the Endstone server how to locate your plugin's main entry point class (`MySelectorPlugin` inside `src/my_selector_plugin/plugin.py`).

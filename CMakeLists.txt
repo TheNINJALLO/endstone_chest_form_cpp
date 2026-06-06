@@ -18,7 +18,7 @@ set(SRC_FILES
     src/chest_form.cpp
     src/chest_form_manager.cpp
     src/plugin.cpp
-    src/bindings.cpp
+    src/c_api.cpp
 )
 
 # Include directories
@@ -74,19 +74,7 @@ else()
     message(STATUS "Protocol library found locally!")
 endif()
 
-# Find or Fetch pybind11 and Python3 Development
-find_package(Python3 COMPONENTS Development REQUIRED)
-
-find_package(pybind11 CONFIG QUIET)
-if(NOT pybind11_FOUND)
-    message(STATUS "pybind11 not found. Fetching from GitHub...")
-    FetchContent_Declare(
-        pybind11
-        GIT_REPOSITORY https://github.com/pybind/pybind11.git
-        GIT_TAG v2.12.0
-    )
-    FetchContent_MakeAvailable(pybind11)
-endif()
+# No python dependencies needed for dynamic C-ABI.
 
 # Build the Shared Library/Plugin using the Endstone helper function
 endstone_add_plugin(chestform_api ${SRC_FILES})
@@ -107,7 +95,6 @@ endif()
 target_link_libraries(chestform_api 
     PRIVATE 
         Protocol::Protocol
-        pybind11::module
 )
 
 # Install API headers for integration by other plugins

@@ -95,10 +95,13 @@ void openMenu(endstone::Plugin& plugin, endstone::Player& player) {
 
 ### 2. Python Integration
 
-Install the package directly from PyPI:
-```bash
-pip install endstone-chestform-api
-```
+To use `ChestFormAPI` in Python:
+1. **Server Setup**: Place the compiled C++ plugin binary (`endstone_chestform_api.dll` on Windows or `endstone_chestform_api.so` on Linux) into your Endstone server's `plugins/` directory.
+2. **Dynamic Bindings**: The native C++ plugin automatically registers and injects the `endstone_chestform_api` module dynamically at runtime when loaded by the server.
+3. **Local Development / IDE Autocomplete**: For IDE type checking and auto-completion during development, install the developer stubs directly from this repository:
+   ```bash
+   pip install git+https://github.com/TheNINJALLO/endstone_chestform_api.git@master
+   ```
 
 **Python Example:**
 ```python
