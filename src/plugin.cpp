@@ -19,8 +19,10 @@
 class ChestFormListener {
 public:
     void onPacketSend(endstone::PacketSendEvent& event) {
-        if (event.getPlayer()) {
-            ChestFormManager::getInstance().handlePacketSend(*event.getPlayer(), event.getPacketId(), event.getPayload());
+        if (event.getPacketId() == 137) { // ItemRegistryPacket
+            ChestFormManager::getInstance().handlePacketSend(nullptr, event.getPacketId(), event.getPayload());
+        } else if (event.getPlayer()) {
+            ChestFormManager::getInstance().handlePacketSend(event.getPlayer(), event.getPacketId(), event.getPayload());
         }
     }
 
@@ -115,7 +117,7 @@ private:
 
         FormItem filler;
         filler.type_id = "minecraft:black_stained_glass_pane";
-        filler.aux = 0;
+        filler.aux = 15;
         filler.display_name = " ";
 
         for (int i = 0; i < 54; ++i) {
@@ -163,7 +165,7 @@ private:
 
         FormItem filler;
         filler.type_id = "minecraft:black_stained_glass_pane";
-        filler.aux = 0;
+        filler.aux = 15;
         filler.display_name = " ";
 
         for (int i = 36; i <= 44; ++i) {
@@ -192,7 +194,7 @@ private:
             } else {
                 FormItem placeholder;
                 placeholder.type_id = "minecraft:light_gray_stained_glass_pane";
-                placeholder.aux = 0;
+                placeholder.aux = 8;
                 placeholder.display_name = placeholder_name;
                 form->setSlot(virtual_slot, placeholder);
             }
@@ -295,7 +297,7 @@ private:
 
         FormItem glass;
         glass.type_id = "minecraft:black_stained_glass_pane";
-        glass.aux = 0;
+        glass.aux = 15;
         glass.display_name = " ";
         for (int i = 0; i < 27; ++i) {
             if (i != 4 && i != 11 && i != 13 && i != 15) {
@@ -374,7 +376,7 @@ private:
     std::unordered_map<std::string, std::vector<FormItem>> virtual_ender_chests_;
 };
 
-ENDSTONE_PLUGIN("chestform_api", "1.0.7", ChestFormPlugin) {
+ENDSTONE_PLUGIN("chestform_api", "1.0.8", ChestFormPlugin) {
     prefix = "ChestFormPlugin";
     description = "Native C++ ChestFormAPI for fake chest inventory forms";
     website = "https://github.com/GlacieTeam/ChestFormAPI";

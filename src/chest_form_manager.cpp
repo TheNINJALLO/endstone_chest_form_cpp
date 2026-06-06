@@ -262,7 +262,8 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
 
     if (plugin_) {
         plugin_->getLogger().info("Opening Fake Chest Form for " + player.getName() + 
-                                  " (Window ID: " + std::to_string(session.window_id) + ")");
+                                  " (Window ID: " + std::to_string(session.window_id) +
+                                  ", Item Registry Size: " + std::to_string(item_name_to_id_.size()) + ")");
     }
 
     // Place fake chest block(s)
@@ -299,10 +300,9 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
     for (int i = 0; i < 27; ++i) {
         auto slot_it = session.slots.find(i);
         if (slot_it != session.slots.end()) {
-            auto nbt = serializeFormItemToNbt(slot_it->second, i);
-            if (!nbt.mValue.empty()) {
-                items1.mValue.push_back(sculk::protocol::TagVariant{nbt});
-            }
+            items1.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
+        } else {
+            items1.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
         }
     }
     compound1.mValue["Items"] = sculk::protocol::TagVariant{items1};
@@ -333,10 +333,9 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
         for (int i = 0; i < 27; ++i) {
             auto slot_it = session.slots.find(i + 27);
             if (slot_it != session.slots.end()) {
-                auto nbt = serializeFormItemToNbt(slot_it->second, i);
-                if (!nbt.mValue.empty()) {
-                    items2.mValue.push_back(sculk::protocol::TagVariant{nbt});
-                }
+                items2.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
+            } else {
+                items2.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
             }
         }
         compound2.mValue["Items"] = sculk::protocol::TagVariant{items2};
@@ -468,10 +467,9 @@ void ChestFormManager::updateForm(endstone::Player& player, const ChestForm& for
     for (int i = 0; i < 27; ++i) {
         auto slot_it = session.slots.find(i);
         if (slot_it != session.slots.end()) {
-            auto nbt = serializeFormItemToNbt(slot_it->second, i);
-            if (!nbt.mValue.empty()) {
-                items1.mValue.push_back(sculk::protocol::TagVariant{nbt});
-            }
+            items1.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
+        } else {
+            items1.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
         }
     }
     compound1.mValue["Items"] = sculk::protocol::TagVariant{items1};
@@ -502,10 +500,9 @@ void ChestFormManager::updateForm(endstone::Player& player, const ChestForm& for
         for (int i = 0; i < 27; ++i) {
             auto slot_it = session.slots.find(i + 27);
             if (slot_it != session.slots.end()) {
-                auto nbt = serializeFormItemToNbt(slot_it->second, i);
-                if (!nbt.mValue.empty()) {
-                    items2.mValue.push_back(sculk::protocol::TagVariant{nbt});
-                }
+                items2.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
+            } else {
+                items2.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
             }
         }
         compound2.mValue["Items"] = sculk::protocol::TagVariant{items2};
@@ -535,13 +532,21 @@ void ChestFormManager::updateForm(endstone::Player& player, const ChestForm& for
     sendPacketHelper(player, content);
 }
 
-void ChestFormManager::handlePacketSend(endstone::Player& player, int packet_id, std::string_view payload) {
+void ChestFormManager::handlePacketSend(endstone::Player* player, int packet_id, std::string_view payload) {
     if (packet_id == static_cast<int>(sculk::protocol::MinecraftPacketIds::ItemRegistry)) {
         sculk::protocol::ReadOnlyBinaryStream stream(payload);
         sculk::protocol::ItemRegistryPacket packet;
         if (packet.read(stream)) {
+            if (plugin_) {
+                plugin_->getLogger().info("Successfully parsed ItemRegistryPacket with " + 
+                                          std::to_string(packet.mItemData.size()) + " items.");
+            }
             for (const auto& item : packet.mItemData) {
                 item_name_to_id_[item.mName] = item.mId;
+            }
+        } else {
+            if (plugin_) {
+                plugin_->getLogger().error("Failed to parse ItemRegistryPacket!");
             }
         }
     }
@@ -696,8 +701,8 @@ std::int16_t ChestFormManager::getItemId(const std::string& name) const {
 
     static const std::unordered_map<std::string, std::int16_t> fallback_ids = {
         {"minecraft:stained_glass_pane", 160},
-        {"minecraft:black_stained_glass_pane", -657},
-        {"minecraft:light_gray_stained_glass_pane", -650},
+        {"minecraft:black_stained_glass_pane", 160},
+        {"minecraft:light_gray_stained_glass_pane", 160},
         {"minecraft:diamond_block", 57},
         {"minecraft:emerald", 388},
         {"minecraft:barrier", 416},

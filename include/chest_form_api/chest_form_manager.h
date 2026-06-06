@@ -41,7 +41,7 @@ public:
     void updateForm(endstone::Player& player, const ChestForm& form);
 
     // Packet interceptors called from Endstone events
-    void handlePacketSend(endstone::Player& player, int packet_id, std::string_view payload);
+    void handlePacketSend(endstone::Player* player, int packet_id, std::string_view payload);
     // Returns true to allow the packet to be processed by the server, false to cancel
     bool handlePacketReceive(endstone::Player& player, int packet_id, std::string_view payload);
 
