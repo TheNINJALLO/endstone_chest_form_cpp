@@ -2,6 +2,7 @@
 #include <endstone/player.h>
 #include <endstone/server.h>
 #include <endstone/plugin/plugin.h>
+#include <endstone/scheduler/scheduler.h>
 #include <endstone/level/dimension.h>
 #include <endstone/block/block.h>
 #include <endstone/block/block_data.h>
@@ -258,30 +259,43 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
         sendPacketHelper(player, actor2);
     }
 
-    // 3. Open Container UI
-    sculk::protocol::ContainerOpenPacket open;
-    open.mContainerId = static_cast<sculk::protocol::ContainerID>(session.window_id);
-    open.mContainerType = sculk::protocol::ContainerType::Container;
-    open.mPosition = {session.chest_x, session.chest_y, session.chest_z};
-    open.mTargetActorId = -1;
-    sendPacketHelper(player, open);
+    // 3. Open Container UI (delayed by 2 ticks to allow client construction of block actor)
+    if (plugin_) {
+        auto player_uuid = player.getUniqueId();
+        plugin_->getServer().getScheduler().runTaskLater(*plugin_, [this, player_uuid, uuid, window_id = session.window_id, chest_x = session.chest_x, chest_y = session.chest_y, chest_z = session.chest_z, size = session.size]() {
+            auto* current_player = plugin_->getServer().getPlayer(player_uuid);
+            if (!current_player) return;
 
-    // 4. Fill Slots
-    sculk::protocol::InventoryContentPacket content;
-    content.mInventoryId = session.window_id;
-    int total_slots = static_cast<int>(session.size);
-    content.mSlots.resize(total_slots);
-    for (int i = 0; i < total_slots; ++i) {
-        auto it = session.slots.find(i);
-        if (it != session.slots.end()) {
-            content.mSlots[i] = serializeFormItem(it->second);
-        } else {
-            sculk::protocol::NetworkItemStackDescriptor empty_desc;
-            empty_desc.mId = 0;
-            content.mSlots[i] = empty_desc;
-        }
+            auto it = active_sessions_.find(uuid);
+            if (it == active_sessions_.end() || it->second.window_id != window_id || !it->second.is_open) {
+                return;
+            }
+
+            sculk::protocol::ContainerOpenPacket open;
+            open.mContainerId = static_cast<sculk::protocol::ContainerID>(window_id);
+            open.mContainerType = sculk::protocol::ContainerType::Container;
+            open.mPosition = {chest_x, chest_y, chest_z};
+            open.mTargetActorId = -1;
+            sendPacketHelper(*current_player, open);
+
+            // 4. Fill Slots
+            sculk::protocol::InventoryContentPacket content;
+            content.mInventoryId = window_id;
+            int total_slots = static_cast<int>(size);
+            content.mSlots.resize(total_slots);
+            for (int i = 0; i < total_slots; ++i) {
+                auto slot_it = it->second.slots.find(i);
+                if (slot_it != it->second.slots.end()) {
+                    content.mSlots[i] = serializeFormItem(slot_it->second);
+                } else {
+                    sculk::protocol::NetworkItemStackDescriptor empty_desc;
+                    empty_desc.mId = 0;
+                    content.mSlots[i] = empty_desc;
+                }
+            }
+            sendPacketHelper(*current_player, content);
+        }, 2);
     }
-    sendPacketHelper(player, content);
 }
 
 void ChestFormManager::closeForm(endstone::Player& player, bool client_initiated) {

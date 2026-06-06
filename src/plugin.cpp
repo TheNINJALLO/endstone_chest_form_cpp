@@ -122,7 +122,7 @@ private:
     std::unique_ptr<ChestFormListener> listener_;
 };
 
-ENDSTONE_PLUGIN("chest_form_cpp", "1.0.2", ChestFormPlugin) {
+ENDSTONE_PLUGIN("chest_form_cpp", "1.0.3", ChestFormPlugin) {
     prefix = "ChestFormPlugin";
     description = "Native C++ ChestFormAPI for fake chest inventory forms";
     website = "https://github.com/GlacieTeam/ChestFormAPI";
