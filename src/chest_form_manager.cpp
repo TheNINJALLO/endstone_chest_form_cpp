@@ -397,7 +397,9 @@ void ChestFormManager::closeForm(endstone::Player& player, bool client_initiated
     active_sessions_.erase(uuid);
 
     if (plugin_) {
-        plugin_->getLogger().info("Closing Fake Chest Form for " + player.getName());
+        plugin_->getLogger().info("Closing Fake Chest Form for " + player.getName() + 
+                                  " (Window ID: " + std::to_string(session.window_id) +
+                                  ", Client Initiated: " + (client_initiated ? "true" : "false") + ")");
     }
 
     if (!client_initiated) {
@@ -555,6 +557,11 @@ bool ChestFormManager::handlePacketReceive(endstone::Player& player, int packet_
         sculk::protocol::ReadOnlyBinaryStream stream(payload);
         sculk::protocol::ContainerClosePacket packet;
         if (packet.read(stream)) {
+            if (plugin_) {
+                plugin_->getLogger().info("Received ContainerClosePacket for " + player.getName() + 
+                                          " (Packet Window ID: " + std::to_string(static_cast<int>(packet.mContainerId)) + 
+                                          ", Active Session Window ID: " + std::to_string(session.window_id) + ")");
+            }
             if (static_cast<std::uint8_t>(packet.mContainerId) == session.window_id) {
                 closeForm(player, true);
             }
