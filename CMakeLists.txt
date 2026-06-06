@@ -61,6 +61,8 @@ if(NOT Protocol_FOUND)
     message(STATUS "Applying local patch to BlockPos.cpp in: ${protocol_SOURCE_DIR}")
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/patches/BlockPos.cpp" 
          DESTINATION "${protocol_SOURCE_DIR}/src/sculk/protocol/codec/level/block")
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/patches/BinaryStream.hpp" 
+         DESTINATION "${protocol_SOURCE_DIR}/include/sculk/protocol/utility")
 
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
         if(TARGET Protocol)
