@@ -132,7 +132,7 @@ build-backend = "scikit-build-core.build"
 
 [project]
 name = "endstone_chest_form"
-version = "1.0.0"
+version = "1.0.1"
 description = "Python wrapper for Endstone C++ ChestFormAPI"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -149,7 +149,7 @@ python -m build --wheel
 
 This generates a `.whl` package in the `dist/` directory, which can be installed in any Endstone server environment using:
 ```bash
-pip install dist/endstone_chest_form-1.0.0-*.whl
+pip install dist/endstone_chest_form-1.0.1-*.whl
 ```
 
 ### 3. Example Python API Usage

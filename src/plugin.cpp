@@ -55,7 +55,7 @@ public:
 
     bool onCommand(endstone::CommandSender& sender, const endstone::Command& command, const std::vector<std::string>& args) override {
         if (command.getName() == "chestformtest") {
-            auto* player = dynamic_cast<endstone::Player*>(&sender);
+            auto* player = sender.asPlayer();
             if (!player) {
                 sender.sendErrorMessage("This command can only be executed by a player.");
                 return true;
@@ -122,7 +122,7 @@ private:
     std::unique_ptr<ChestFormListener> listener_;
 };
 
-ENDSTONE_PLUGIN("chest_form_cpp", "1.0.0", ChestFormPlugin) {
+ENDSTONE_PLUGIN("chest_form_cpp", "1.0.1", ChestFormPlugin) {
     prefix = "ChestFormPlugin";
     description = "Native C++ ChestFormAPI for fake chest inventory forms";
     website = "https://github.com/GlacieTeam/ChestFormAPI";
