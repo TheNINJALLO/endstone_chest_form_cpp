@@ -291,10 +291,9 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
     for (int i = 0; i < 27; ++i) {
         auto slot_it = session.slots.find(i);
         if (slot_it != session.slots.end()) {
-            auto nbt = serializeFormItemToNbt(slot_it->second, i);
-            if (!nbt.mValue.empty()) {
-                items1.mValue.push_back(sculk::protocol::TagVariant{nbt});
-            }
+            items1.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
+        } else {
+            items1.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
         }
     }
     compound1.mValue["Items"] = sculk::protocol::TagVariant{items1};
@@ -325,10 +324,9 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
         for (int i = 0; i < 27; ++i) {
             auto slot_it = session.slots.find(i + 27);
             if (slot_it != session.slots.end()) {
-                auto nbt = serializeFormItemToNbt(slot_it->second, i);
-                if (!nbt.mValue.empty()) {
-                    items2.mValue.push_back(sculk::protocol::TagVariant{nbt});
-                }
+                items2.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
+            } else {
+                items2.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
             }
         }
         compound2.mValue["Items"] = sculk::protocol::TagVariant{items2};
@@ -460,10 +458,9 @@ void ChestFormManager::updateForm(endstone::Player& player, const ChestForm& for
     for (int i = 0; i < 27; ++i) {
         auto slot_it = session.slots.find(i);
         if (slot_it != session.slots.end()) {
-            auto nbt = serializeFormItemToNbt(slot_it->second, i);
-            if (!nbt.mValue.empty()) {
-                items1.mValue.push_back(sculk::protocol::TagVariant{nbt});
-            }
+            items1.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
+        } else {
+            items1.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
         }
     }
     compound1.mValue["Items"] = sculk::protocol::TagVariant{items1};
@@ -494,10 +491,9 @@ void ChestFormManager::updateForm(endstone::Player& player, const ChestForm& for
         for (int i = 0; i < 27; ++i) {
             auto slot_it = session.slots.find(i + 27);
             if (slot_it != session.slots.end()) {
-                auto nbt = serializeFormItemToNbt(slot_it->second, i);
-                if (!nbt.mValue.empty()) {
-                    items2.mValue.push_back(sculk::protocol::TagVariant{nbt});
-                }
+                items2.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(slot_it->second, i)});
+            } else {
+                items2.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
             }
         }
         compound2.mValue["Items"] = sculk::protocol::TagVariant{items2};
@@ -528,7 +524,7 @@ void ChestFormManager::updateForm(endstone::Player& player, const ChestForm& for
 }
 
 void ChestFormManager::handlePacketSend(endstone::Player* player, int packet_id, std::string_view payload) {
-    if (packet_id == static_cast<int>(sculk::protocol::MinecraftPacketIds::ItemRegistry)) {
+    if (packet_id == static_cast<int>(sculk::protocol::MinecraftPacketIds::ItemRegistry) || packet_id == 137 || packet_id == 162) {
         sculk::protocol::ReadOnlyBinaryStream stream(payload);
         sculk::protocol::ItemRegistryPacket packet;
         if (packet.read(stream)) {
