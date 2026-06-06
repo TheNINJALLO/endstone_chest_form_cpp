@@ -35,6 +35,21 @@ To help you get started quickly and configure integrations, please refer to the 
 
 ---
 
+## 🛡️ Moderation Commands & GUI Features
+
+The plugin includes built-in commands for operators/admins to inspect and moderate other players' inventories and ender chests in real time:
+
+*   **`/chestinvsee <player: str>`** — Opens a 54-slot chest interface displaying the target player's inventory, hotbar, and armor slots.
+*   **`/chestendersee <player: str>`** — Opens a 27-slot chest interface displaying the target player's virtual ender chest contents.
+
+### Inventory Moderation Actions
+Inside either the inventory or ender chest viewer GUI, admins can click on any item stack to open a dedicated **Management Menu**:
+1.  **Clone Items**: Click the **Emerald** block (`§aClone Item`) to copy the selected item stack directly to your own (the admin's) inventory.
+2.  **Delete Items**: Click the **Redstone Block** (`§cDelete Item`) to permanently erase the selected item stack from the target player's inventory or virtual ender chest.
+3.  **Go Back**: Click the **Arrow** (`§eGo Back`) to return to the target player's main inventory/ender chest view.
+
+---
+
 ## 🚀 Quick Start
 
 ### 1. C++ Integration

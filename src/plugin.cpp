@@ -377,7 +377,7 @@ private:
     std::unordered_map<std::string, std::vector<FormItem>> virtual_ender_chests_;
 };
 
-ENDSTONE_PLUGIN("chestform_api", "1.0.11", ChestFormPlugin) {
+ENDSTONE_PLUGIN("chestform_api", "1.0.12", ChestFormPlugin) {
     prefix = "ChestFormPlugin";
     description = "Native C++ ChestFormAPI for fake chest inventory forms";
     website = "https://github.com/GlacieTeam/ChestFormAPI";
@@ -390,12 +390,12 @@ ENDSTONE_PLUGIN("chestform_api", "1.0.11", ChestFormPlugin) {
 
     command("chestinvsee")
         .description("View and manage player inventory")
-        .usages("/chestinvsee <player>")
+        .usages("/chestinvsee <player: str>")
         .permissions("chestformapi.command.invsee");
 
     command("chestendersee")
         .description("View and manage player ender chest")
-        .usages("/chestendersee <player>")
+        .usages("/chestendersee <player: str>")
         .permissions("chestformapi.command.endersee");
 
     permission("chestformapi.command.test")
