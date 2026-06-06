@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(endstone_chest_form_cpp VERSION 1.0.4 LANGUAGES CXX)
+project(endstone_chest_form_cpp VERSION 1.0.5 LANGUAGES CXX)
 
 # Set C++ Standard
 set(CMAKE_CXX_STANDARD 23)
@@ -56,6 +56,12 @@ if(NOT Protocol_FOUND)
         GIT_TAG main
     )
     FetchContent_MakeAvailable(Protocol)
+    
+    # Apply local patch to BlockPos.cpp in fetched source to correct Y coordinate serialization
+    message(STATUS "Applying local patch to BlockPos.cpp in: ${protocol_SOURCE_DIR}")
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/patches/BlockPos.cpp" 
+         DESTINATION "${protocol_SOURCE_DIR}/src/sculk/protocol/codec/level/block")
+
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
         if(TARGET Protocol)
             target_compile_options(Protocol PRIVATE -Wno-invalid-constexpr)

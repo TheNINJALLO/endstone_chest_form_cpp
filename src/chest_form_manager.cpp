@@ -347,7 +347,7 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
         sendPacketHelper(player, actor2);
     }
 
-    // 3. Open Container UI (delayed by 5 ticks to allow client construction of block actor)
+    // 3. Open Container UI (delayed by 10 ticks to allow client construction of block actor)
     if (plugin_) {
         auto player_uuid = player.getUniqueId();
         plugin_->getServer().getScheduler().runTaskLater(*plugin_, [this, player_uuid, uuid, window_id = session.window_id, chest_x = session.chest_x, chest_y = session.chest_y, chest_z = session.chest_z, size = session.size]() {
@@ -382,7 +382,7 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
                 }
             }
             sendPacketHelper(*current_player, content);
-        }, 5);
+        }, 10);
     }
 }
 
