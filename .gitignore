@@ -19,3 +19,7 @@ external/
 # OS temporary files
 .DS_Store
 Thumbs.db
+
+# Local artifacts and logs
+build_artifact*/
+log.txt
