@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "endstone-chestform-api"
-version = "1.0.21"
+version = "1.0.22"
 description = "Python developer stubs and client wrapper for the native C++ ChestFormAPI Endstone plugin"
 readme = "README.md"
 authors = [{ name = "TheNINJALLO" }]
