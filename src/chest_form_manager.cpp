@@ -89,7 +89,7 @@ static sculk::protocol::NetworkItemStackDescriptor serializeFormItem(const FormI
     sculk::protocol::BinaryStream user_stream(user_bytes);
     if (!main_compound.mValue.empty()) {
         user_stream.writeSignedShort(-1); // NBT count indicator
-        main_compound.write(user_stream);
+        main_compound.serialize(user_stream);
     } else {
         user_stream.writeSignedShort(0);  // No NBT
     }
