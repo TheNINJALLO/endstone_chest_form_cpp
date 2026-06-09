@@ -1,0 +1,191 @@
+Metadata-Version: 2.4
+Name: endstone-chestform-api
+Version: 1.0.23
+Summary: Python developer stubs and client wrapper for the native C++ ChestFormAPI Endstone plugin
+Author: TheNINJALLO
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: endstone>=0.11.0
+
+# Endstone ChestFormAPI
+
+A high-performance, native C++23 Endstone plugin and Python wrapper that allows developers to create and manage virtual chest inventory GUIs for Bedrock Edition players. Spoofs inventory screens fully server-side with zero client-side resource packs or downloads required.
+
+---
+
+<p align="center">
+  <img src="https://img.shields.io/pypi/v/endstone-chestform-api?style=for-the-badge&color=blue" alt="PyPI Version" />
+  <img src="https://img.shields.io/pypi/pyversions/endstone-chestform-api?style=for-the-badge&color=green" alt="Python Versions" />
+  <img src="https://img.shields.io/badge/C%2B%2B-23-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white" alt="C++ Standard" />
+  <img src="https://img.shields.io/badge/Platforms-Windows%20%7C%20Linux-lightgrey?style=for-the-badge" alt="Supported Platforms" />
+  <img src="https://img.shields.io/badge/License-MPL_2.0-orange?style=for-the-badge" alt="License" />
+</p>
+
+---
+
+## 📖 Project Documentation
+
+To help you get started quickly and configure integrations, please refer to the corresponding guides:
+
+*   **[Developer & Usage Guide](usage_guide.md)** — Comprehensive guide with C++ and Python side-by-side examples covering setup, dynamic updates, chest mirroring, and buttons.
+*   **[Python Packaging & Deployment Guide](python_wheel_guide.md)** — Learn how to bundle your Python Endstone plugins with `endstone-chestform-api` into standalone wheels (`.whl`).
+*   **[Protocol Compatibility Notes](compatibility_notes.md)** — Technical specs detailing packet structures, Bedrock IDs, and network synchronization details.
+
+---
+
+## 📦 Release Artifacts Guide
+
+This project compiles into several different release artifacts, each serving a specific purpose:
+
+1. **`endstone_chestform_api.dll` (Windows C++ Server Plugin)**:
+   * **Purpose**: Compiled Windows native C++ plugin for the Endstone server. It intercepts and generates Minecraft Bedrock packets, handles UI state, and exposes C-ABI endpoints.
+   * **Installation**: Place this file inside the `plugins/` directory of your Windows Endstone server.
+
+2. **`endstone_chestform_api.so` (Linux C++ Server Plugin)**:
+   * **Purpose**: Compiled Linux native C++ plugin for the Endstone server. It intercepts and generates Minecraft Bedrock packets, handles UI state, and exposes C-ABI endpoints.
+   * **Installation**: Place this file inside the `plugins/` directory of your Linux Endstone server.
+
+3. **`endstone_chestform_api-X.Y.Z-py3-none-any.whl` (Python Client Wrapper & Developer Stubs)**:
+   * **Purpose**: Python packaging wheel containing Python stubs. This allows Python-based Endstone plugins to interface with the native C++ backend via `ctypes` dynamic loading, and provides type hinting and autocomplete for IDEs.
+   * **Installation**: Install this package via `pip install endstone_chestform_api-X.Y.Z-py3-none-any.whl` (or download/install from GitHub).
+
+---
+
+## ✨ Features
+
+*   **Flexible Layouts**: Supports both Single Chest (27 slots) and Double Chest (54 slots) layouts.
+*   **Aesthetic Formatting**: Customize slot items with display names, lore strings, enchantments, and custom NBT.
+*   **Dynamic UI Refreshes**: Update titles, sizes, or individual slot icons dynamically without desyncing clients.
+*   **Interactive Callbacks**: Register lambda/function triggers directly to slots; handles execution when slots are clicked.
+*   **Desync & Dupe Protections**: Cancels client-side item movements to prevent duplication or inventory desync.
+*   **Auto-Cleanup**: Restores original blocks when a player disconnects, closes the UI, or the plugin disables.
+
+---
+
+## 🛡️ Moderation Commands & GUI Features
+
+The plugin includes built-in commands for operators/admins to inspect and moderate other players' inventories and ender chests in real time:
+
+*   **`/chestinvsee <player: str>`** — Opens a 54-slot chest interface displaying the target player's inventory, hotbar, and armor slots.
+*   **`/chestendersee <player: str>`** — Opens a 27-slot chest interface displaying the target player's virtual ender chest contents.
+
+### Step-by-Step Moderation Flow
+1.  **Open Inspector**: Run `/chestinvsee <player: str>` or `/chestendersee <player: str>` to view their items. All non-item background and border slots are left completely empty (clear) for a clean, minimal UI.
+2.  **Select Item**: Click on the specific item stack you want to manage.
+3.  **Perform Action**: Clicking the item opens a **Management Submenu** for that slot index, displaying:
+    *   **Clone**: Click the **Emerald** (`§aClone Item`) to copy the item stack directly to your own inventory.
+    *   **Delete**: Click the **Redstone Block** (`§cDelete Item`) to permanently erase the item stack from the target player's inventory or virtual ender chest.
+    *   **Go Back**: Click the **Arrow** (`§eGo Back`) to return to the main inventory/ender chest screen.
+
+---
+
+## 🚀 Quick Start
+
+### 1. C++ Integration
+
+Add the headers and link the library target:
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+    endstone_chestform_api
+    GIT_REPOSITORY https://github.com/TheNINJALLO/endstone_chestform_api.git
+    GIT_TAG master
+)
+FetchContent_MakeAvailable(endstone_chestform_api)
+
+# Link the target in your CMakeLists.txt
+target_link_libraries(your_plugin PRIVATE chestform_api)
+```
+
+**C++ Example:**
+```cpp
+#include <chest_form_api/chest_form.h>
+#include <endstone/player.h>
+
+void openMenu(endstone::Plugin& plugin, endstone::Player& player) {
+    ChestForm form(plugin, "§bDeveloper Kit Selector", ChestSize::Double);
+
+    FormItem kit_item;
+    kit_item.type_id = "minecraft:diamond_sword";
+    kit_item.display_name = "§aWarrior's Blade";
+    kit_item.lore = {"§7Click to claim your sword!"};
+
+    form.setSlot(13, kit_item, [](endstone::Player& p, int slot) {
+        p.getInventory().addItem(endstone::ItemStack("minecraft:diamond_sword", 1));
+        p.sendMessage("§a[ChestForm] Claimed sword!");
+    });
+
+    form.sendTo(player);
+}
+```
+
+### 2. Python Integration
+
+To use `ChestFormAPI` in Python:
+1. **Server Setup**: Place the compiled C++ plugin binary (`endstone_chestform_api.dll` on Windows or `endstone_chestform_api.so` on Linux) into your Endstone server's `plugins/` directory.
+2. **Dynamic Bindings**: The native C++ plugin automatically registers and injects the `endstone_chestform_api` module dynamically at runtime when loaded by the server.
+3. **Local Development / IDE Autocomplete**: For IDE type checking and auto-completion during development, install the developer stubs directly from this repository:
+   ```bash
+   pip install git+https://github.com/TheNINJALLO/endstone_chestform_api.git@master
+   ```
+
+**Python Example:**
+```python
+from endstone.player import Player
+from endstone.plugin import Plugin
+from endstone_chestform_api import ChestForm, FormItem, ChestSize
+
+def open_menu(plugin: Plugin, player: Player):
+    form = ChestForm(plugin, "§bPython Kit Selector", ChestSize.DOUBLE)
+
+    kit_item = FormItem()
+    kit_item.type_id = "minecraft:diamond_sword"
+    kit_item.display_name = "§aWarrior's Blade"
+    kit_item.lore = ["§7Click to claim your sword!"]
+
+    def on_click(p: Player, slot: int):
+        p.inventory.add_item(p.server.create_item_stack("minecraft:diamond_sword", 1))
+        p.send_message("§a[ChestForm] Claimed sword!")
+
+    form.set_slot(13, kit_item, on_click)
+    form.send_to(player)
+```
+
+---
+
+## 🛠️ Build from Source
+
+### Linux (Clang 18)
+To build on Linux, you must use **Clang 18** and **Ninja**:
+
+```bash
+# Configure with Clang 18 and Ninja
+CC=clang-18 CXX=clang++-18 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+# Build targets
+cmake --build build
+```
+
+The compiled plugin shared object (`endstone_chestform_api.so`) will be output inside the `build/` directory.
+
+### Windows (MSVC 2022)
+To build on Windows, use Visual Studio Build Tools:
+
+```powershell
+# Configure Visual Studio project
+cmake -B build -G "Visual Studio 17 2022" -A x64
+
+# Compile the library
+cmake --build build --config Release
+```
+
+The compiled DLL (`endstone_chestform_api.dll`) will be output inside the `build/Release/` directory.
+
+---
+
+## 📜 License
+
+This project is licensed under the terms of the **Mozilla Public License, v. 2.0** (MPL-2.0). See the [LICENSE](LICENSE) file for details.

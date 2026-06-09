@@ -89,7 +89,7 @@ static sculk::protocol::NetworkItemStackDescriptor serializeFormItem(const FormI
     sculk::protocol::BinaryStream user_stream(user_bytes);
     if (!main_compound.mValue.empty()) {
         user_stream.writeSignedShort(-1); // NBT count indicator
-        main_compound.write(user_stream);
+        main_compound.serialize(user_stream);
     } else {
         user_stream.writeSignedShort(0);  // No NBT
     }
@@ -308,8 +308,6 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
             filler.amount = 1;
             filler.display_name = " ";
             items1.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(filler, i)});
-        } else {
-            items1.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
         }
     }
     compound1.mValue["Items"] = sculk::protocol::TagVariant{items1};
@@ -347,8 +345,6 @@ void ChestFormManager::openForm(endstone::Player& player, const ChestForm& form)
                 filler.amount = 1;
                 filler.display_name = " ";
                 items2.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(filler, i)});
-            } else {
-                items2.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
             }
         }
         compound2.mValue["Items"] = sculk::protocol::TagVariant{items2};
@@ -496,8 +492,6 @@ void ChestFormManager::updateForm(endstone::Player& player, const ChestForm& for
             filler.amount = 1;
             filler.display_name = " ";
             items1.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(filler, i)});
-        } else {
-            items1.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
         }
     }
     compound1.mValue["Items"] = sculk::protocol::TagVariant{items1};
@@ -535,8 +529,6 @@ void ChestFormManager::updateForm(endstone::Player& player, const ChestForm& for
                 filler.amount = 1;
                 filler.display_name = " ";
                 items2.mValue.push_back(sculk::protocol::TagVariant{serializeFormItemToNbt(filler, i)});
-            } else {
-                items2.mValue.push_back(sculk::protocol::TagVariant{sculk::protocol::CompoundTag{}});
             }
         }
         compound2.mValue["Items"] = sculk::protocol::TagVariant{items2};
